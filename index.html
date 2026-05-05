@@ -225,6 +225,18 @@
     transition: width 0.05s linear;
   }
 
+  .version-badge {
+    position: absolute;
+    right: 10px;
+    bottom: 8px;
+    z-index: 21;
+    pointer-events: none;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 8px;
+    color: rgba(255, 248, 220, 0.78);
+    text-shadow: 1px 1px 0 rgba(0,0,0,0.35);
+  }
+
   .overlay {
     position: absolute;
     inset: 0;
@@ -535,6 +547,7 @@
   </div>
 
   <div class="power-bar" id="power-bar"></div>
+  <div class="version-badge">1.1ver</div>
 
   <div class="overlay" id="nickname-screen">
     <div class="title">CHICK<br>QUEST</div>
@@ -2127,9 +2140,6 @@
   }
 
   let playerNickname = '';
-  try {
-    playerNickname = localStorage.getItem('chick-quest-nickname') || '';
-  } catch(e) {}
 
   function getRankings() {
     try {
@@ -2245,7 +2255,6 @@
       return;
     }
     playerNickname = v.slice(0, 10);
-    try { localStorage.setItem('chick-quest-nickname', playerNickname); } catch(e) {}
     Audio.ensure();
     Audio.play('uiClick');
     showStartScreen();
@@ -2300,12 +2309,7 @@
       const el = document.getElementById('preview-' + name);
       if (el) el.src = SPRITE_DATA[name];
     });
-    // Decide which screen to show first
-    if (playerNickname) {
-      showStartScreen();
-    } else {
-      // Stay on nickname screen (already visible by default)
-    }
+    nicknameScreen.classList.remove('hidden');
     loop();
   });
 })();
