@@ -547,7 +547,7 @@
   </div>
 
   <div class="power-bar" id="power-bar"></div>
-  <div class="version-badge">1.1ver</div>
+  <div class="version-badge">1.2ver</div>
 
   <div class="overlay" id="nickname-screen">
     <div class="title">CHICK<br>QUEST</div>
@@ -591,12 +591,14 @@
 
     <button class="btn" id="start-btn">START</button>
     <button class="btn btn-secondary" id="show-ranking-btn">🏆 랭킹</button>
+    <button class="btn btn-secondary" id="change-nickname-btn">닉네임 변경</button>
   </div>
 
   <div class="overlay hidden" id="ranking-screen">
     <div class="title">🏆 랭킹</div>
     <div id="ranking-list" class="ranking-list"></div>
     <button class="btn" id="ranking-back-btn">뒤로</button>
+    <button class="btn btn-secondary" id="ranking-change-nickname-btn">닉네임 변경</button>
     <button class="btn btn-secondary" id="ranking-clear-btn">내 기록 초기화</button>
   </div>
 
@@ -1982,7 +1984,7 @@
     }, 1800);
   }
 
-  function finalizeGameOver() {
+  async function finalizeGameOver() {
     finalScoreEl.textContent = score;
     let isNewRecord = false;
     if (score > best) {
@@ -1994,9 +1996,11 @@
     // Add to rankings
     let rankInfo = '';
     if (playerNickname && score > 0) {
-      const rankings = addRanking(playerNickname, score);
-      // Find this score's rank
-      const idx = rankings.findIndex(r => r.name === playerNickname && r.score === score);
+      const result = await addRanking(playerNickname, score);
+      const rankings = result.onlineRankings || result.localRankings;
+      const idx = rankings.findIndex(r => (
+        result.onlineId ? r._id === result.onlineId : r.date === result.record.date
+      ));
       if (idx >= 0 && idx < 20) {
         rankInfo = `🏆 랭킹 ${idx + 1}위!`;
       }
@@ -2116,9 +2120,11 @@
   const nicknameConfirm = document.getElementById('nickname-confirm');
   const playerGreeting = document.getElementById('player-greeting');
   const showRankingBtn = document.getElementById('show-ranking-btn');
+  const changeNicknameBtn = document.getElementById('change-nickname-btn');
   const rankingScreen = document.getElementById('ranking-screen');
   const rankingList = document.getElementById('ranking-list');
   const rankingBackBtn = document.getElementById('ranking-back-btn');
+  const rankingChangeNicknameBtn = document.getElementById('ranking-change-nickname-btn');
   const rankingClearBtn = document.getElementById('ranking-clear-btn');
   const FIREBASE_CONFIG = {
     apiKey: "AIzaSyAWqXNehHNYJzvx2Ux8SBylj-vZ5CDhh6g",
@@ -2141,12 +2147,24 @@
 
   let playerNickname = '';
 
+  function normalizeRankings(arr) {
+    return (Array.isArray(arr) ? arr : [])
+      .map(r => ({
+        ...r,
+        name: String(r.name || '???').slice(0, 10),
+        score: Number(r.score) || 0,
+        date: Number(r.date) || 0
+      }))
+      .filter(r => r.score > 0)
+      .sort((a, b) => b.score - a.score || a.date - b.date);
+  }
+
   function getRankings() {
     try {
       const raw = localStorage.getItem('chick-quest-rankings');
       if (!raw) return [];
       const arr = JSON.parse(raw);
-      return Array.isArray(arr) ? arr : [];
+      return normalizeRankings(arr);
     } catch(e) { return []; }
   }
 
@@ -2156,24 +2174,26 @@
     } catch(e) {}
   }
 
-  function addRanking(name, score) {
+  async function addRanking(name, score) {
     const rankings = getRankings();
     const record = { name: name.slice(0, 10), score: Math.floor(score), date: Date.now() };
     rankings.push(record);
-    rankings.sort((a, b) => b.score - a.score);
     // Keep top 50
-    const top = rankings.slice(0, 50);
+    const top = normalizeRankings(rankings).slice(0, 50);
     saveRankings(top);
-    saveOnlineRanking(record);
-    return top;
+    const onlineId = await saveOnlineRanking(record);
+    const onlineRankings = onlineId ? await getOnlineRankings() : null;
+    return { record, localRankings: top, onlineId, onlineRankings };
   }
 
   async function saveOnlineRanking(record) {
     if (!firestoreDb) return;
     try {
-      await firestoreDb.collection('rankings').add(record);
+      const doc = await firestoreDb.collection('rankings').add(record);
+      return doc.id;
     } catch(e) {
       console.warn('Online ranking save failed', e);
+      return null;
     }
   }
 
@@ -2181,10 +2201,8 @@
     if (!firestoreDb) return null;
     try {
       const snap = await firestoreDb.collection('rankings')
-        .orderBy('score', 'desc')
-        .limit(20)
         .get();
-      return snap.docs.map(doc => doc.data());
+      return normalizeRankings(snap.docs.map(doc => ({ _id: doc.id, ...doc.data() })));
     } catch(e) {
       console.warn('Online ranking load failed', e);
       return null;
@@ -2248,6 +2266,15 @@
     }
   }
 
+  function showNicknameScreen() {
+    startScreen.classList.add('hidden');
+    rankingScreen.classList.add('hidden');
+    endScreen.classList.add('hidden');
+    nicknameInput.value = playerNickname || '';
+    nicknameScreen.classList.remove('hidden');
+    nicknameInput.focus();
+  }
+
   function confirmNickname() {
     const v = (nicknameInput.value || '').trim();
     if (v.length === 0) {
@@ -2277,6 +2304,18 @@
     Audio.play('uiClick');
     rankingScreen.classList.add('hidden');
     showStartScreen();
+  });
+
+  changeNicknameBtn.addEventListener('click', () => {
+    Audio.ensure();
+    Audio.play('uiClick');
+    showNicknameScreen();
+  });
+
+  rankingChangeNicknameBtn.addEventListener('click', () => {
+    Audio.ensure();
+    Audio.play('uiClick');
+    showNicknameScreen();
   });
 
   rankingClearBtn.addEventListener('click', () => {
@@ -2316,6 +2355,7 @@
 </script>
 </body>
 </html>
+
 
 
 
