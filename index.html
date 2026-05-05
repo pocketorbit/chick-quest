@@ -547,7 +547,7 @@
   </div>
 
   <div class="power-bar" id="power-bar"></div>
-  <div class="version-badge">1.2ver</div>
+  <div class="version-badge">1.3ver</div>
 
   <div class="overlay" id="nickname-screen">
     <div class="title">CHICK<br>QUEST</div>
@@ -2001,7 +2001,7 @@
       const idx = rankings.findIndex(r => (
         result.onlineId ? r._id === result.onlineId : r.date === result.record.date
       ));
-      if (idx >= 0 && idx < 20) {
+      if (idx >= 0 && idx < 50) {
         rankInfo = `🏆 랭킹 ${idx + 1}위!`;
       }
     }
@@ -2222,7 +2222,7 @@
       label.textContent = sourceLabel;
       rankingList.appendChild(label);
     }
-    rankings.slice(0, 20).forEach((r, i) => {
+    rankings.slice(0, 50).forEach((r, i) => {
       const row = document.createElement('div');
       row.className = 'ranking-row';
       if (i === 0) row.classList.add('gold');
@@ -2355,6 +2355,7 @@
 </script>
 </body>
 </html>
+
 
 
 
