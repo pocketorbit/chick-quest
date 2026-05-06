@@ -338,7 +338,20 @@
   .item-row .icon {
     font-size: 16px;
     width: 20px;
+    height: 20px;
     text-align: center;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .item-row .icon img {
+    width: 22px;
+    height: 22px;
+    object-fit: contain;
+    image-rendering: pixelated;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: crisp-edges;
   }
 
   .btn {
@@ -547,7 +560,7 @@
   </div>
 
   <div class="power-bar" id="power-bar"></div>
-  <div class="version-badge">1.3ver</div>
+  <div class="version-badge">1.4ver</div>
 
   <div class="overlay" id="nickname-screen">
     <div class="title">CHICK<br>QUEST</div>
@@ -573,18 +586,19 @@
     <div class="controls-hint">
       <span>드래그</span> 자유 이동 (상하좌우)<br>
       <span>TAP / SPACE</span> 달걀 발사 (닭일 때)<br>
+      <span>모바일</span> 닭은 드래그 중 자동 발사<br>
       각 단계마다 다른 음식을 모으면 진화!
     </div>
 
     <div class="item-legend">
-      <div class="item-row"><span class="icon">☀️</span> 햇빛 (알 부화)</div>
-      <div class="item-row"><span class="icon">🌾</span> 곡식 (병아리로)</div>
-      <div class="item-row"><span class="icon">🪱</span> 지렁이 (닭으로)</div>
-      <div class="item-row"><span class="icon">🌽</span> 옥수수 +50</div>
-      <div class="item-row"><span class="icon">🛡️</span> 쉴드 무적</div>
-      <div class="item-row"><span class="icon">🧲</span> 자석 흡입</div>
-      <div class="item-row"><span class="icon">💣</span> 폭탄 제거</div>
-      <div class="item-row"><span class="icon">✨</span> 점수 2배</div>
+      <div class="item-row"><span class="icon" data-icon="sun">☀️</span> 햇빛 (알 부화)</div>
+      <div class="item-row"><span class="icon" data-icon="grain">🌾</span> 곡식 (병아리로)</div>
+      <div class="item-row"><span class="icon" data-icon="worm">🪱</span> 지렁이 (닭으로)</div>
+      <div class="item-row"><span class="icon" data-icon="corn">🌽</span> 옥수수 +80</div>
+      <div class="item-row"><span class="icon" data-icon="shield">🛡️</span> 쉴드 무적</div>
+      <div class="item-row"><span class="icon" data-icon="magnet">🧲</span> 자석 흡입</div>
+      <div class="item-row"><span class="icon" data-icon="bomb">💣</span> 폭탄 제거</div>
+      <div class="item-row"><span class="icon" data-icon="double">✨</span> 점수 2배</div>
     </div>
 
     <div id="player-greeting"></div>
@@ -998,6 +1012,8 @@
   const POWER_TYPES = ['shield', 'magnet', 'bomb', 'double'];
 
   const MAX_STAGE = 3;
+  const STAGE_SCORE_RATE = [1, 2, 3, 4];
+  const TOUCH_FINGER_OFFSET = 88;
 
   let player, obstacles, corns, foods, items, eggs, particles, shockwaves, clouds;
   let score, best, gameSpeed, spawnTimer, cornTimer, foodTimer, itemTimer, frame;
@@ -1006,6 +1022,8 @@
   const EGG_CD_MAX = 50;
   let running = false;
   let dying = false;        // death animation playing
+  let deathLocked = false;  // blocks restart until the result screen is ready
+  let finalScoreSnapshot = 0;
   let deathFrame = 0;       // counts up during death
   let deathFx = [];         // yolk drips, body parts, etc
   let keys = { left: false, right: false, up: false, down: false };
@@ -1031,6 +1049,8 @@
     obstacles = []; corns = []; foods = []; items = []; eggs = [];
     particles = []; shockwaves = []; clouds = []; deathFx = [];
     dying = false;
+    deathLocked = false;
+    finalScoreSnapshot = 0;
     deathFrame = 0;
     for (let i = 0; i < 4; i++) {
       clouds.push({
@@ -1046,6 +1066,8 @@
     frame = 0;
     eggCooldownFrames = 0;
     active = { shield: 0, magnet: 0, double: 0 };
+    keys = { left: false, right: false, up: false, down: false };
+    touchX = null; touchY = null; dragging = false;
     scoreEl.textContent = '0';
     renderPowerBar();
     updateEggCooldownUI();
@@ -1095,6 +1117,17 @@
     else evoGaugeWrap.classList.remove('maxed');
   }
 
+  function scoreMultiplier() {
+    return active.double > 0 ? 2 : 1;
+  }
+
+  function addScore(points, useDouble = true) {
+    const amount = Math.max(0, Math.floor(points * (useDouble ? scoreMultiplier() : 1)));
+    if (amount <= 0) return;
+    score += amount;
+    scoreEl.textContent = score;
+  }
+
   function spawnObstacle(stonesOnly = false) {
     let pool;
     if (stonesOnly) {
@@ -1126,6 +1159,7 @@
         w: w, h: h,
         collW: meta.collW, collH: meta.collH,
         vy: (gameSpeed + Math.random() * 1.0) * meta.vyMul,
+        type,
         emoji: meta.emoji,
         kind: 'predator',
         isLong: meta.isLong,
@@ -1160,8 +1194,13 @@
     items.push({ x: 25 + Math.random() * (W - 50), y: -25, r: 18, vy: gameSpeed * 0.6, type, bob: 0 });
   }
 
+  function spawnItemAt(x, y) {
+    const type = POWER_TYPES[Math.floor(Math.random() * POWER_TYPES.length)];
+    items.push({ x, y, r: 18, vy: gameSpeed * 0.45, type, bob: Math.random() * Math.PI * 2 });
+  }
+
   function shootEgg() {
-    if (player.stage !== MAX_STAGE || eggCooldownFrames > 0) return;
+    if (!running || player.stage !== MAX_STAGE || eggCooldownFrames > 0) return;
     eggs.push({ x: player.x, y: player.y - getPlayerSize() / 2, vy: -9, r: 12, rot: 0 });
     eggCooldownFrames = EGG_CD_MAX;
     Audio.play('egg');
@@ -1212,9 +1251,10 @@
     addParticles(x, y, particleColor || '224, 122, 138', 22, 6);
     Audio.play('worm');
     if (player.stage >= MAX_STAGE) {
-      score += 100;
+      addScore(120);
       return;
     }
+    addScore([8, 14, 22][player.stage] || 10);
     player.wormCount++;
     // For egg stage, play occasional crack sounds at milestones
     if (player.stage === 0) {
@@ -1281,9 +1321,7 @@
     if (!running) return;
     frame++;
 
-    const mult = active.double > 0 ? 2 : 1;
-    score += 1 * mult;
-    scoreEl.textContent = score;
+    addScore(STAGE_SCORE_RATE[player.stage] || 1);
 
     let needRender = false;
     for (const k of ['shield', 'magnet', 'double']) {
@@ -1341,6 +1379,7 @@
     if (itemTimer > 480) { itemTimer = 0; if (Math.random() < 0.85) spawnItem(); }
 
     input();
+    if (touchX !== null && player.stage === MAX_STAGE) shootEgg();
 
     for (const c of clouds) {
       c.x -= c.speed;
@@ -1362,9 +1401,10 @@
           addParticles(effX + o.w/2, o.y + o.h/2,
             o.kind === 'stone' ? '127, 140, 141' : '160, 100, 60', 12, 4);
           Audio.play('eggHit');
+          if (['magpie', 'owl', 'hawk'].includes(o.type)) spawnItemAt(effX + o.w/2, o.y + o.h/2);
           obstacles.splice(j, 1);
           eggs.splice(i, 1);
-          score += 30 * mult;
+          addScore(o.kind === 'predator' ? 55 : 30);
           break;
         }
       }
@@ -1413,7 +1453,7 @@
       const dx = player.x - c.x;
       const dy = player.y - c.y;
       if (dx * dx + dy * dy < (pr + c.r) ** 2) {
-        score += 50 * mult;
+        addScore(80);
         addParticles(c.x, c.y, '244, 208, 63', 18);
         Audio.play('corn');
         corns.splice(i, 1);
@@ -1489,13 +1529,48 @@
     }
   }
 
+  function drawBackground() {
+    const sky = ctx.createLinearGradient(0, 0, 0, H);
+    sky.addColorStop(0, '#ffd7a8');
+    sky.addColorStop(0.45, '#f6b5b9');
+    sky.addColorStop(0.72, '#fff4b8');
+    sky.addColorStop(1, '#b7e4c7');
+    ctx.fillStyle = sky;
+    ctx.fillRect(0, 0, W, H);
+
+    const sunX = W * 0.78 + Math.sin(frame * 0.003) * 12;
+    const sunY = H * 0.18;
+    const sunGlow = ctx.createRadialGradient(sunX, sunY, 8, sunX, sunY, 90);
+    sunGlow.addColorStop(0, 'rgba(255, 238, 156, 0.75)');
+    sunGlow.addColorStop(1, 'rgba(255, 238, 156, 0)');
+    ctx.fillStyle = sunGlow;
+    ctx.beginPath();
+    ctx.arc(sunX, sunY, 90, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = 'rgba(109, 190, 151, 0.28)';
+    for (let x = -40; x < W + 80; x += 90) {
+      ctx.beginPath();
+      ctx.ellipse(x + Math.sin(frame * 0.004 + x) * 10, H - 74, 78, 30, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.fillStyle = 'rgba(72, 149, 114, 0.22)';
+    for (let x = -20; x < W + 80; x += 70) {
+      ctx.beginPath();
+      ctx.ellipse(x - (frame * 0.08 % 70), H - 42, 54, 20, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
   function drawCloud(x, y, w) {
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.72)';
     const px = Math.max(2, w / 16);
     ctx.fillRect(x + px*4, y, px*8, px*2);
     ctx.fillRect(x + px*2, y + px*2, px*12, px*2);
     ctx.fillRect(x, y + px*4, px*16, px*2);
     ctx.fillRect(x + px*2, y + px*6, px*12, px*2);
+    ctx.fillStyle = 'rgba(255, 235, 220, 0.38)';
+    ctx.fillRect(x + px*3, y + px*6, px*10, px);
   }
 
   function drawGround() {
@@ -1512,6 +1587,7 @@
   function draw() {
     ctx.clearRect(0, 0, W, H);
 
+    drawBackground();
     for (const c of clouds) drawCloud(c.x, c.y, c.w);
     drawGround();
 
@@ -1771,6 +1847,7 @@
 
   function drawDeath() {
     // Sky/clouds/ground
+    drawBackground();
     for (const c of clouds) drawCloud(c.x, c.y, c.w);
     drawGround();
 
@@ -1899,6 +1976,7 @@
   }
 
   function start() {
+    if (deathLocked) return;
     Audio.ensure();
     Audio.play('uiClick');
     reset();
@@ -1910,6 +1988,7 @@
 
   function startDeathAnimation() {
     dying = true;
+    deathLocked = true;
     deathFrame = 0;
     deathFx = [];
     Audio.stopMusic();
@@ -1979,27 +2058,30 @@
     }
 
     // Show game over UI after animation completes
+    const resultScore = finalScoreSnapshot;
     setTimeout(() => {
-      finalizeGameOver();
+      finalizeGameOver(resultScore);
     }, 1800);
   }
 
-  async function finalizeGameOver() {
-    finalScoreEl.textContent = score;
+  async function finalizeGameOver(resultScore = score) {
+    score = resultScore;
+    scoreEl.textContent = score;
+    finalScoreEl.textContent = resultScore;
     let isNewRecord = false;
-    if (score > best) {
-      best = score;
+    if (resultScore > best) {
+      best = resultScore;
       isNewRecord = true;
       try { localStorage.setItem('chick-quest-best', best); } catch(e) {}
       updateBestDisplay();
     }
     // Add to rankings
     let rankInfo = '';
-    if (playerNickname && score > 0) {
-      const result = await addRanking(playerNickname, score);
+    if (playerNickname && resultScore > 0) {
+      const result = await addRanking(playerNickname, resultScore);
       const rankings = result.onlineRankings || result.localRankings;
       const idx = rankings.findIndex(r => (
-        result.onlineId ? r._id === result.onlineId : r.date === result.record.date
+        r.name === result.record.name || (result.onlineId ? r._id === result.onlineId : r.date === result.record.date)
       ));
       if (idx >= 0 && idx < 50) {
         rankInfo = `🏆 랭킹 ${idx + 1}위!`;
@@ -2024,11 +2106,13 @@
       recordMsgEl.style.letterSpacing = '';
       recordMsgEl.style.whiteSpace = 'pre-line';
     }
+    deathLocked = false;
     endScreen.classList.remove('hidden');
   }
 
   function gameOver() {
     if (!running) return;
+    finalScoreSnapshot = score;
     running = false;
     startDeathAnimation();
   }
@@ -2067,14 +2151,14 @@
     touchStartX = getX(e); touchStartY = getY(e);
     dragging = false;
     touchX = touchStartX;
-    touchY = touchStartY;
+    touchY = touchStartY - TOUCH_FINGER_OFFSET;
   }, { passive: false });
   canvas.addEventListener('touchmove', e => {
     e.preventDefault();
-    const x = getX(e), y = getY(e);
-    if (Math.abs(x - touchStartX) > 8 || Math.abs(y - touchStartY) > 8) dragging = true;
+    const x = getX(e), rawY = getY(e);
+    if (Math.abs(x - touchStartX) > 8 || Math.abs(rawY - touchStartY) > 8) dragging = true;
     touchX = x;
-    touchY = y;
+    touchY = rawY - TOUCH_FINGER_OFFSET;
   }, { passive: false });
   canvas.addEventListener('touchend', e => {
     e.preventDefault();
@@ -2148,14 +2232,21 @@
   let playerNickname = '';
 
   function normalizeRankings(arr) {
-    return (Array.isArray(arr) ? arr : [])
+    const bestByName = new Map();
+    for (const r of (Array.isArray(arr) ? arr : [])
       .map(r => ({
         ...r,
         name: String(r.name || '???').slice(0, 10),
         score: Number(r.score) || 0,
         date: Number(r.date) || 0
       }))
-      .filter(r => r.score > 0)
+      .filter(r => r.score > 0)) {
+      const prev = bestByName.get(r.name);
+      if (!prev || r.score > prev.score || (r.score === prev.score && r.date < prev.date)) {
+        bestByName.set(r.name, r);
+      }
+    }
+    return [...bestByName.values()]
       .sort((a, b) => b.score - a.score || a.date - b.date);
   }
 
@@ -2189,6 +2280,24 @@
   async function saveOnlineRanking(record) {
     if (!firestoreDb) return;
     try {
+      const sameName = await firestoreDb.collection('rankings')
+        .where('name', '==', record.name)
+        .get();
+      let bestDoc = null;
+      sameName.forEach(doc => {
+        const data = doc.data() || {};
+        const savedScore = Number(data.score) || 0;
+        const savedDate = Number(data.date) || 0;
+        if (!bestDoc || savedScore > bestDoc.score || (savedScore === bestDoc.score && savedDate < bestDoc.date)) {
+          bestDoc = { id: doc.id, score: savedScore, date: savedDate };
+        }
+      });
+      if (bestDoc) {
+        if (record.score > bestDoc.score) {
+          await firestoreDb.collection('rankings').doc(bestDoc.id).set(record);
+        }
+        return bestDoc.id;
+      }
       const doc = await firestoreDb.collection('rankings').add(record);
       return doc.id;
     } catch(e) {
@@ -2253,6 +2362,18 @@
     return String(s).replace(/[&<>"']/g, c => ({
       '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
     }[c]));
+  }
+
+  function hydrateLegendIcons() {
+    document.querySelectorAll('.item-row .icon[data-icon]').forEach(icon => {
+      const key = icon.getAttribute('data-icon');
+      if (!SPRITE_DATA[key]) return;
+      const img = document.createElement('img');
+      img.src = SPRITE_DATA[key];
+      img.alt = key;
+      icon.textContent = '';
+      icon.appendChild(img);
+    });
   }
 
   function showStartScreen() {
@@ -2348,6 +2469,7 @@
       const el = document.getElementById('preview-' + name);
       if (el) el.src = SPRITE_DATA[name];
     });
+    hydrateLegendIcons();
     nicknameScreen.classList.remove('hidden');
     loop();
   });
