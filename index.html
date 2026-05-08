@@ -141,11 +141,32 @@
   .evo-gauge-wrap.maxed .evo-gauge-label { color: #fff; }
   .evo-gauge-wrap.hidden { display: none; }
 
+  .barrage-status {
+    position: absolute;
+    top: 18px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 12;
+    pointer-events: none;
+    font-family: Arial, "Noto Sans KR", sans-serif;
+    font-size: 14px;
+    font-weight: 800;
+    color: #5d3a1a;
+    text-align: center;
+    text-shadow: 0 1px 0 rgba(255,255,255,0.75), 0 0 8px rgba(255,195,0,0.8);
+    letter-spacing: 0;
+  }
+  .barrage-status.ready {
+    font-size: 18px;
+    color: #ff4d1f;
+    text-shadow: 0 1px 0 rgba(255,255,255,0.8), 0 0 12px rgba(255,195,0,0.95);
+  }
+
   .sound-toggle {
     position: absolute;
     top: 12px;
-    left: 50%;
-    transform: translateX(-50%);
+    left: calc(50% + 92px);
+    transform: none;
     z-index: 11;
     background: var(--wood);
     border: 3px solid var(--wood-dark);
@@ -175,6 +196,7 @@
     justify-content: center;
     max-width: 90%;
   }
+  .power-bar.hidden { display: none; }
 
   .power-pill {
     background: var(--wood);
@@ -276,55 +298,143 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 4px;
+    gap: 7px;
     margin-bottom: 20px;
     flex-wrap: nowrap;
     width: 100%;
-    max-width: 360px;
-    min-height: 80px;
+    max-width: 390px;
+    min-height: 96px;
   }
   .evo-show img {
-    max-width: 56px;
-    max-height: 72px;
+    max-width: 76px;
+    max-height: 92px;
     width: auto;
-    height: auto;
-    image-rendering: pixelated;
-    image-rendering: -moz-crisp-edges;
-    image-rendering: crisp-edges;
+    height: 82px;
+    image-rendering: auto;
     object-fit: contain;
     display: block;
+    filter: drop-shadow(0 4px 0 rgba(0,0,0,0.18));
   }
   .evo-show .evo-arrow {
     flex-shrink: 0;
-    font-size: 14px;
   }
   .evo-arrow {
-    color: var(--gold);
-    font-size: 18px;
-    font-family: 'Press Start 2P', monospace;
+    width: 24px;
+    height: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: space-between;
+    filter: drop-shadow(1px 1px 0 var(--wood-dark));
+  }
+  .evo-arrow::before,
+  .evo-arrow::after {
+    content: '';
+  }
+  .evo-arrow::before,
+  .evo-arrow::after,
+  .evo-arrow span {
+    width: 5px;
+    height: 5px;
+    background: var(--gold);
+    border-radius: 1px;
+    display: block;
   }
 
   .controls-hint {
-    font-family: 'VT323', monospace;
-    font-size: 16px;
-    color: var(--shell);
-    margin-bottom: 20px;
-    line-height: 1.6;
-    max-width: 320px;
+    font-family: "Arial Black", "Malgun Gothic", "Noto Sans KR", sans-serif;
+    font-size: clamp(17px, 4vw, 23px);
+    font-weight: 900;
+    color: #ffd447;
+    margin: 2px 0 22px;
+    line-height: 1.2;
+    max-width: 420px;
+    text-shadow:
+      2px 0 0 var(--wood-dark),
+      0 2px 0 var(--wood-dark),
+      2px 2px 0 var(--wood-dark),
+      4px 4px 0 var(--accent);
+    letter-spacing: 0;
+    white-space: nowrap;
   }
-  .controls-hint span { color: var(--gold); font-weight: bold; }
 
   .item-legend {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 6px;
-    margin-bottom: 24px;
-    font-family: 'VT323', monospace;
+    display: none;
+  }
+
+  .start-actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+  }
+
+  .start-actions .btn-secondary {
+    margin-top: 0;
+    min-width: 112px;
+    padding: 11px 18px;
+    font-family: "Arial Black", "Malgun Gothic", "Noto Sans KR", sans-serif;
+    font-size: 16px;
+    font-weight: 900;
+    color: #ffd447;
+    text-shadow:
+      1px 0 0 var(--wood-dark),
+      0 1px 0 var(--wood-dark),
+      2px 2px 0 var(--wood-dark);
+    letter-spacing: 0;
+  }
+
+  .help-btn {
+    min-width: 42px !important;
+    width: 42px;
+    padding-left: 0;
+    padding-right: 0;
     font-size: 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .start-tip {
+    font-family: "Arial Black", "Malgun Gothic", "Noto Sans KR", sans-serif;
+    font-size: 15px;
+    font-weight: 900;
+    color: rgba(255, 248, 220, 0.78);
+    margin-top: 18px;
+    letter-spacing: 0;
+    text-shadow:
+      1px 0 0 rgba(0,0,0,0.55),
+      0 1px 0 rgba(0,0,0,0.55),
+      2px 2px 0 rgba(0,0,0,0.45);
+  }
+
+  #start-btn {
+    font-size: 16px;
+    padding: 18px 48px;
+    min-width: 280px;
+  }
+
+  .item-legend {
+    position: absolute;
+    left: 50%;
+    bottom: 106px;
+    transform: translateX(-50%);
+    z-index: 24;
+    display: none;
+    grid-template-columns: 1fr 1fr;
+    gap: 7px;
+    width: min(360px, 86vw);
+    padding: 14px;
+    background: rgba(43, 24, 16, 0.96);
+    border: 2px solid var(--wood);
+    border-radius: 6px;
+    box-shadow: 0 8px 18px rgba(0,0,0,0.35);
     text-align: left;
-    max-width: 320px;
     color: var(--shell);
   }
+  .item-legend.show { display: grid; }
 
   .item-row {
     display: flex;
@@ -333,6 +443,23 @@
     padding: 3px 6px;
     background: rgba(255, 248, 220, 0.1);
     border-radius: 3px;
+    font-family: "Arial Black", "Malgun Gothic", "Noto Sans KR", sans-serif;
+    font-size: 13px;
+    font-weight: 900;
+    letter-spacing: 0;
+  }
+
+  .help-close {
+    grid-column: 1 / -1;
+    justify-self: center;
+    margin-top: 4px;
+    border: none;
+    background: transparent;
+    color: var(--gold);
+    font-family: "Arial Black", "Malgun Gothic", "Noto Sans KR", sans-serif;
+    font-size: 16px;
+    font-weight: 900;
+    cursor: pointer;
   }
 
   .item-row .icon {
@@ -405,11 +532,16 @@
   }
 
   #player-greeting {
-    font-family: 'VT323', monospace;
-    font-size: 20px;
-    color: var(--gold);
+    font-family: "Arial Black", "Malgun Gothic", "Noto Sans KR", sans-serif;
+    font-size: 18px;
+    font-weight: 900;
+    color: #ffd447;
     margin-bottom: 16px;
-    letter-spacing: 1px;
+    letter-spacing: 0;
+    text-shadow:
+      1px 0 0 var(--wood-dark),
+      0 1px 0 var(--wood-dark),
+      2px 2px 0 var(--wood-dark);
   }
 
   .ranking-list {
@@ -418,9 +550,9 @@
     border-radius: 6px;
     padding: 12px;
     margin: 16px 0;
-    width: 320px;
-    max-width: 90%;
-    max-height: 320px;
+    width: min(440px, 94vw);
+    max-width: 94%;
+    max-height: 440px;
     overflow-y: auto;
     text-align: left;
   }
@@ -434,7 +566,7 @@
     border-radius: 4px;
     font-family: 'VT323', monospace;
     color: var(--shell);
-    gap: 12px;
+    gap: 10px;
   }
   .ranking-row.gold { background: rgba(255, 195, 0, 0.3); border: 1px solid var(--gold); }
   .ranking-row.silver { background: rgba(192, 192, 192, 0.2); border: 1px solid #c0c0c0; }
@@ -443,21 +575,25 @@
 
   .ranking-rank {
     font-family: 'Press Start 2P', monospace;
-    font-size: 14px;
+    font-size: 11px;
     color: var(--gold);
-    min-width: 32px;
+    min-width: 42px;
+    flex: 0 0 42px;
   }
   .ranking-name {
     flex: 1;
-    font-size: 20px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    min-width: 0;
+    font-size: 18px;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    white-space: normal;
+    line-height: 1.05;
   }
   .ranking-score {
     font-family: 'Press Start 2P', monospace;
-    font-size: 12px;
+    font-size: 10px;
     color: var(--shell);
+    flex: 0 0 auto;
   }
   .ranking-empty {
     text-align: center;
@@ -498,30 +634,32 @@
 
   .evo-flash {
     position: absolute;
-    inset: 0;
+    top: 14px;
+    left: 0;
+    right: 0;
     pointer-events: none;
     z-index: 15;
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: center;
     opacity: 0;
   }
   .evo-flash.show { animation: evoFlash 1.4s ease-out; }
   .evo-flash .text {
     font-family: 'Press Start 2P', monospace;
-    font-size: 22px;
+    font-size: 14px;
     color: var(--gold);
-    text-shadow: 3px 3px 0 var(--accent), 6px 6px 0 var(--wood-dark);
+    text-shadow: 2px 2px 0 var(--accent), 4px 4px 0 var(--wood-dark);
     background: rgba(43, 24, 16, 0.85);
-    padding: 16px 24px;
-    border-radius: 8px;
-    letter-spacing: 2px;
+    padding: 10px 14px;
+    border-radius: 6px;
+    letter-spacing: 1px;
     white-space: pre-line;
-    line-height: 1.6;
+    line-height: 1.45;
   }
   @keyframes evoFlash {
-    0% { opacity: 0; transform: scale(0.5); }
-    25% { opacity: 1; transform: scale(1.15); }
+    0% { opacity: 0; transform: translateY(-10px) scale(0.85); }
+    25% { opacity: 1; transform: translateY(0) scale(1.04); }
     75% { opacity: 1; transform: scale(1); }
     100% { opacity: 0; transform: scale(1); }
   }
@@ -542,6 +680,8 @@
     </div>
   </div>
 
+  <div class="barrage-status" id="barrage-status"></div>
+
   <div class="evo-gauge-wrap" id="evo-gauge-wrap">
     <span class="evo-gauge-label" id="evo-gauge-label">EGG → HATCHING</span>
     <div class="evo-gauge-bar">
@@ -560,12 +700,12 @@
   </div>
 
   <div class="power-bar" id="power-bar"></div>
-  <div class="version-badge">2.4ver</div>
+  <div class="version-badge">2.5ver</div>
 
   <div class="overlay" id="nickname-screen">
     <div class="title">CHICK<br>QUEST</div>
     <div class="subtitle">// 닉네임을 입력하세요 //</div>
-    <input type="text" id="nickname-input" maxlength="10" placeholder="닉네임 (최대 10자)" />
+    <input type="text" id="nickname-input" maxlength="24" placeholder="닉네임 (최대 24자)" />
     <button class="btn" id="nickname-confirm">확인</button>
   </div>
 
@@ -575,19 +715,12 @@
 
     <div class="evo-show">
       <img id="preview-egg" alt="egg" />
-      <span class="evo-arrow">→</span>
+      <span class="evo-arrow" aria-hidden="true"><span></span></span>
       <img id="preview-hatching" alt="hatching" />
-      <span class="evo-arrow">→</span>
+      <span class="evo-arrow" aria-hidden="true"><span></span></span>
       <img id="preview-chick" alt="chick" />
-      <span class="evo-arrow">→</span>
+      <span class="evo-arrow" aria-hidden="true"><span></span></span>
       <img id="preview-chicken" alt="chicken" />
-    </div>
-
-    <div class="controls-hint">
-      <span>드래그</span> 자유 이동 (상하좌우)<br>
-      <span>TAP / SPACE</span> 달걀 발사 (닭일 때)<br>
-      <span>모바일</span> 닭은 드래그 중 자동 발사<br>
-      각 단계마다 다른 음식을 모으면 진화!
     </div>
 
     <div class="item-legend">
@@ -599,13 +732,18 @@
       <div class="item-row"><span class="icon" data-icon="magnet">🧲</span> 자석 흡입</div>
       <div class="item-row"><span class="icon" data-icon="bomb">💣</span> 폭탄 제거</div>
       <div class="item-row"><span class="icon" data-icon="double">✨</span> 점수 2배</div>
+      <button class="help-close" id="item-help-close">닫기</button>
     </div>
 
     <div id="player-greeting"></div>
 
     <button class="btn" id="start-btn">START</button>
-    <button class="btn btn-secondary" id="show-ranking-btn">🏆 랭킹</button>
-    <button class="btn btn-secondary" id="change-nickname-btn">닉네임 변경</button>
+    <div class="start-actions">
+      <button class="btn btn-secondary" id="show-ranking-btn">🏆 랭킹</button>
+      <button class="btn btn-secondary" id="change-nickname-btn">닉네임</button>
+      <button class="btn btn-secondary help-btn" id="item-help-btn">?</button>
+    </div>
+    <div class="start-tip">드래그 혹은 키보드로 이동 가능</div>
   </div>
 
   <div class="overlay hidden" id="ranking-screen">
@@ -944,6 +1082,7 @@
   const eggFill = document.getElementById('egg-fill');
   const evoFlash = document.getElementById('evo-flash');
   const evoText = document.getElementById('evo-text');
+  const barrageStatus = document.getElementById('barrage-status');
   const evoGaugeWrap = document.getElementById('evo-gauge-wrap');
   const evoGaugeFill = document.getElementById('evo-gauge-fill');
   const evoGaugeLabel = document.getElementById('evo-gauge-label');
@@ -975,28 +1114,28 @@
   // Each stage has its own food and evolution requirement
   const STAGES = [
     {
-      name: 'egg', emoji: 'egg', size: 44, label: 'EGG',
+      name: 'egg', emoji: 'egg', size: 44, hitRadius: 16, label: 'EGG',
       nextLabel: 'EGG → HATCHING',
       predators: ['snake', 'magpie'],
       food: { emoji: 'sun', name: 'sun', label: '햇빛', particleColor: '255, 220, 100' },
       required: 21 // 21 days of warming
     },
     {
-      name: 'hatching', emoji: 'hatching', size: 48, label: 'HATCHING',
+      name: 'hatching', emoji: 'hatching', size: 48, hitRadius: 17, label: 'HATCHING',
       nextLabel: 'HATCHING → CHICK',
       predators: ['snake', 'magpie'],
       food: { emoji: 'grain', name: 'grain', label: '곡식', particleColor: '218, 165, 32' },
       required: 4
     },
     {
-      name: 'chick', emoji: 'chick', size: 50, label: 'CHICK',
+      name: 'chick', emoji: 'chick', size: 50, hitRadius: 18, label: 'CHICK',
       nextLabel: 'CHICK → CHICKEN',
       predators: ['weasel', 'cat'],
       food: { emoji: 'worm', name: 'worm', label: '지렁이', particleColor: '224, 122, 138' },
       required: 4
     },
     {
-      name: 'chicken', emoji: 'chicken', size: 64, label: 'CHICKEN',
+      name: 'chicken', emoji: 'chicken', size: 64, hitRadius: 23, label: 'CHICKEN',
       nextLabel: 'MAX EVOLVED',
       predators: ['owl', 'hawk'],
       food: null,
@@ -1027,18 +1166,27 @@
   const MAX_STAGE = 3;
   const STAGE_SCORE_RATE = [1, 2, 3, 4];
   const TOUCH_FINGER_OFFSET = 88;
+  const ITEM_SCORE_BONUS = 80;
+  const BARRAGE_KILL_REQUIREMENT = 10;
+  const BARRAGE_DURATION = 210;
+  const BARRAGE_EGG_CD = 9;
 
   let player, obstacles, corns, foods, items, eggs, particles, shockwaves, clouds, bonusTexts;
   let score, best, gameSpeed, spawnTimer, cornTimer, foodTimer, itemTimer, frame;
   let active;
   let eggCooldownFrames = 0;
-  const EGG_CD_MAX = 50;
+  const EGG_CD_MAX = 62;
+  let chickenKillCount = 0;
+  let eggBarrageFrames = 0;
   let running = false;
   let dying = false;        // death animation playing
   let deathLocked = false;  // blocks restart until the result screen is ready
   let finalScoreSnapshot = 0;
   let deathFrame = 0;       // counts up during death
   let deathFx = [];         // yolk drips, body parts, etc
+  let lastLoopTime = 0;
+  let tickAccumulator = 0;
+  const TICK_MS = 1000 / 60;
   let keys = { left: false, right: false, up: false, down: false };
   let touchX = null;
   let touchY = null;
@@ -1067,6 +1215,7 @@
     deathLocked = false;
     finalScoreSnapshot = 0;
     deathFrame = 0;
+    tickAccumulator = 0;
     for (let i = 0; i < 4; i++) {
       clouds.push({
         x: Math.random() * W,
@@ -1076,10 +1225,12 @@
       });
     }
     score = 0;
-    gameSpeed = 2.2;
+    gameSpeed = 1.65;
     spawnTimer = 0; cornTimer = 0; foodTimer = 0; itemTimer = 0;
     frame = 0;
     eggCooldownFrames = 0;
+    chickenKillCount = 0;
+    eggBarrageFrames = 0;
     active = { shield: 0, magnet: 0, double: 0 };
     keys = { left: false, right: false, up: false, down: false };
     touchX = null; touchY = null; dragging = false;
@@ -1087,28 +1238,48 @@
     renderPowerBar();
     updateEggCooldownUI();
     updateEvoGauge();
+    updateBarrageStatus();
   }
 
   function getPlayerSize() { return STAGES[player.stage].size; }
-  function getPlayerRadius() { return getPlayerSize() * 0.35; }
+  function getPlayerRadius() { return STAGES[player.stage].hitRadius || getPlayerSize() * 0.35; }
 
   function renderPowerBar() {
     powerBar.innerHTML = '';
+    powerBar.classList.add('hidden');
+  }
+
+  function getActivePowerLabels() {
+    const labels = [];
     for (const k of ['shield', 'magnet', 'double']) {
       if (active[k] > 0) {
         const sec = Math.ceil(active[k] / 60);
-        const pill = document.createElement('div');
-        pill.className = 'power-pill';
-        pill.innerHTML = `<span>${ITEMS[k].emoji}</span> ${ITEMS[k].label} ${sec}s`;
-        powerBar.appendChild(pill);
+        labels.push(`${ITEMS[k].label[0]}${ITEMS[k].label.slice(1).toLowerCase()} ${sec}s`);
       }
+    }
+    return labels;
+  }
+
+  function updateBarrageStatus() {
+    if (player.stage !== MAX_STAGE) {
+      barrageStatus.textContent = '';
+      barrageStatus.classList.remove('ready');
+      return;
+    }
+    if (eggBarrageFrames > 0) {
+      barrageStatus.textContent = `Egg Barrage ${Math.ceil(eggBarrageFrames / 60)}s`;
+      barrageStatus.classList.add('ready');
+    } else {
+      barrageStatus.textContent = `Kill ${chickenKillCount}/${BARRAGE_KILL_REQUIREMENT}`;
+      barrageStatus.classList.remove('ready');
     }
   }
 
   function updateEggCooldownUI() {
     if (player.stage === MAX_STAGE) {
       eggCooldown.classList.add('show');
-      const pct = ((EGG_CD_MAX - eggCooldownFrames) / EGG_CD_MAX) * 100;
+      const maxCd = eggBarrageFrames > 0 ? BARRAGE_EGG_CD : EGG_CD_MAX;
+      const pct = ((maxCd - Math.min(eggCooldownFrames, maxCd)) / maxCd) * 100;
       eggFill.style.width = pct + '%';
     } else {
       eggCooldown.classList.remove('show');
@@ -1144,8 +1315,8 @@
     return amount;
   }
 
-  function addBonusText(x, y, text, color = '#ffd447') {
-    bonusTexts.push({ x, y, text, color, life: 1, vy: -0.8 });
+  function addBonusText(x, y, text, color = '#ffd447', size = 24, weight = 600, shadow = true) {
+    bonusTexts.push({ x, y, text, color, size, weight, shadow, life: 1, vy: -0.8 });
   }
 
   function spawnObstacle(stonesOnly = false) {
@@ -1222,8 +1393,24 @@
   function shootEgg() {
     if (!running || player.stage !== MAX_STAGE || eggCooldownFrames > 0) return;
     eggs.push({ x: player.x, y: player.y - getPlayerSize() / 2, vy: -9, r: 12, rot: 0 });
-    eggCooldownFrames = EGG_CD_MAX;
+    eggCooldownFrames = eggBarrageFrames > 0 ? BARRAGE_EGG_CD : EGG_CD_MAX;
     Audio.play('egg');
+  }
+
+  function registerEggKill(x, y) {
+    if (eggBarrageFrames > 0) return;
+    chickenKillCount++;
+    if (chickenKillCount >= BARRAGE_KILL_REQUIREMENT) {
+      chickenKillCount = 0;
+      eggBarrageFrames = BARRAGE_DURATION;
+      addParticles(player.x, player.y, '255, 215, 0', 30, 7);
+      addBonusText(player.x, player.y - getPlayerSize() * 0.75, 'BARRAGE!', '#fff1a8', 22);
+      Audio.play('evolve');
+    } else {
+      const left = BARRAGE_KILL_REQUIREMENT - chickenKillCount;
+      addBonusText(x, y - 18, `${left}`, '#fff1a8', 16);
+    }
+    updateBarrageStatus();
   }
 
   function addParticles(x, y, color, count = 15, speed = 5) {
@@ -1238,6 +1425,11 @@
     if (player.stage >= MAX_STAGE) return;
     player.stage++;
     player.wormCount = 0;
+    if (player.stage === MAX_STAGE) {
+      chickenKillCount = 0;
+      eggBarrageFrames = 0;
+      updateBarrageStatus();
+    }
     // Stage-specific evolution sound
     // 0(egg) just evolved -> stage now 1(hatching): hatching crack sound
     // 1(hatching) -> 2(chick): peep peep
@@ -1291,6 +1483,8 @@
     const item = ITEMS[type];
     addParticles(x, y, '255, 215, 0', 25, 6);
     Audio.play(item.sfx);
+    const gained = addScore(ITEM_SCORE_BONUS);
+    addBonusText(player.x + getPlayerSize() * 0.55, player.y - getPlayerSize() * 0.15, `+${gained}`, '#fff1a8', 17, 600, false);
     if (type === 'bomb') {
       shockwaves.push({ x: player.x, y: player.y, r: 10, max: Math.max(W, H) });
       for (const o of obstacles) addParticles(o.x + o.w/2, o.y + o.h/2, '255, 140, 60', 8, 4);
@@ -1304,17 +1498,16 @@
   function input() {
     const speed = 5.5;
     if (touchX !== null) {
-      const dx = touchX - player.x;
-      player.x += Math.sign(dx) * Math.min(Math.abs(dx), speed * 1.4);
-      if (touchY !== null) {
-        const dy = touchY - player.y;
-        player.y += Math.sign(dy) * Math.min(Math.abs(dy), speed * 1.4);
-      }
+      player.x = touchX;
+      if (touchY !== null) player.y = touchY;
     } else {
-      if (keys.left) player.x -= speed;
-      if (keys.right) player.x += speed;
-      if (keys.up) player.y -= speed;
-      if (keys.down) player.y += speed;
+      const dx = (keys.right ? 1 : 0) - (keys.left ? 1 : 0);
+      const dy = (keys.down ? 1 : 0) - (keys.up ? 1 : 0);
+      if (dx || dy) {
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        player.x += (dx / dist) * speed;
+        player.y += (dy / dist) * speed;
+      }
     }
     const halfW = getPlayerSize() / 2;
     const halfH = getPlayerSize() / 2;
@@ -1355,12 +1548,14 @@
     if (needRender) renderPowerBar();
 
     if (eggCooldownFrames > 0) eggCooldownFrames--;
+    if (eggBarrageFrames > 0) eggBarrageFrames--;
+    updateBarrageStatus();
     updateEggCooldownUI();
 
     player.flapPhase += 0.2;
 
-    // Slower speed ramp for fairness
-    gameSpeed = 2.0 + score * 0.0008;
+    // Gentler speed ramp for a less sudden difficulty jump.
+    gameSpeed = 1.65 + score * 0.00045;
 
     // === DIFFICULTY: Grace period at start ===
     // First 4 seconds: only stones spawn (no predators)
@@ -1369,11 +1564,24 @@
     const stonesOnly = frame < 240;  // first 4 seconds: only stones
 
     spawnTimer++;
-    const spawnRate = Math.max(22, 60 - score * 0.010);
+    const isBarrage = eggBarrageFrames > 0;
+    const chickenPressure = player.stage === MAX_STAGE && !isBarrage;
+    const spawnRate = isBarrage
+      ? 14
+      : chickenPressure
+        ? Math.max(28, 58 - score * 0.005)
+        : Math.max(34, 72 - score * 0.006);
     if (!gracePeriod && spawnTimer > spawnRate) {
       spawnTimer = 0;
       spawnObstacle(stonesOnly);
-      if (Math.random() < 0.20 && score > 400) spawnObstacle(stonesOnly);
+      if (isBarrage) {
+        if (Math.random() < 0.75) spawnObstacle(false);
+        if (Math.random() < 0.25) spawnObstacle(false);
+      } else if (chickenPressure) {
+        if (Math.random() < 0.34) spawnObstacle(false);
+      } else if (Math.random() < 0.12 && score > 1200) {
+        spawnObstacle(stonesOnly);
+      }
     }
 
     cornTimer++;
@@ -1399,7 +1607,7 @@
     if (itemTimer > 480) { itemTimer = 0; if (Math.random() < 0.85) spawnItem(); }
 
     input();
-    if (touchX !== null && player.stage === MAX_STAGE) shootEgg();
+    if (player.stage === MAX_STAGE) shootEgg();
 
     for (const c of clouds) {
       c.x -= c.speed;
@@ -1427,6 +1635,7 @@
           const hitBonus = o.kind === 'stone' ? 80 : 180;
           const gained = addScore(hitBonus);
           addBonusText(effX + o.w/2, o.y + o.h/2, `+${gained}`, o.kind === 'stone' ? '#d9e0e3' : '#ffd447');
+          registerEggKill(effX + o.w/2, o.y + o.h/2);
           break;
         }
       }
@@ -1482,7 +1691,8 @@
       const dx = player.x - c.x;
       const dy = player.y - c.y;
       if (dx * dx + dy * dy < (pr + c.r) ** 2) {
-        addScore(80);
+        const gained = addScore(80);
+        addBonusText(player.x + getPlayerSize() * 0.5, player.y - getPlayerSize() * 0.1, `+${gained}`, '#5d3a1a', 17, 600, false);
         addParticles(c.x, c.y, '244, 208, 63', 18);
         Audio.play('corn');
         corns.splice(i, 1);
@@ -1745,12 +1955,14 @@
     for (const b of bonusTexts) {
       ctx.save();
       ctx.globalAlpha = Math.max(0, b.life);
-      ctx.font = '24px VT323';
+      ctx.font = `${b.weight || 600} ${b.size || 24}px Arial, "Noto Sans KR", sans-serif`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.lineWidth = 5;
-      ctx.strokeStyle = '#4b2f1f';
-      ctx.strokeText(b.text, b.x, b.y);
+      if (b.shadow !== false) {
+        ctx.shadowColor = 'rgba(75, 47, 31, 0.5)';
+        ctx.shadowBlur = 3;
+        ctx.shadowOffsetY = 1;
+      }
       ctx.fillStyle = b.color;
       ctx.fillText(b.text, b.x, b.y);
       ctx.restore();
@@ -1937,11 +2149,24 @@
       ctx.fill();
     }
 
-    if (active.double > 0) {
-      ctx.fillStyle = 'rgba(233, 30, 99, 0.95)';
-      ctx.font = 'bold 14px "Press Start 2P", monospace';
+    const powerLabels = getActivePowerLabels();
+    if (powerLabels.length) {
+      ctx.save();
+      ctx.font = '700 13px Arial, "Noto Sans KR", sans-serif';
       ctx.textAlign = 'center';
-      ctx.fillText('×2', player.x, player.y - sz/2 - 8);
+      ctx.textBaseline = 'middle';
+      ctx.shadowColor = 'rgba(255, 255, 255, 0.8)';
+      ctx.shadowBlur = 3;
+      ctx.shadowOffsetY = 1;
+      const lineH = 16;
+      const startY = player.y - sz / 2 - 12 - (powerLabels.length - 1) * lineH;
+      for (let i = 0; i < powerLabels.length; i++) {
+        const label = powerLabels[i];
+        const y = Math.max(18 + i * lineH, startY + i * lineH);
+        ctx.fillStyle = i === 0 ? '#2f75ff' : '#333333';
+        ctx.fillText(label, player.x, y);
+      }
+      ctx.restore();
     }
   }
 
@@ -2122,15 +2347,21 @@
     }
   }
 
-  function loop() {
-    if (dying) {
-      ctx.clearRect(0, 0, W, H);
-      updateDeath();
-      drawDeath();
-    } else {
-      update();
-      draw();
+  function loop(now = performance.now()) {
+    if (!lastLoopTime) lastLoopTime = now;
+    const elapsed = Math.min(50, now - lastLoopTime);
+    lastLoopTime = now;
+    tickAccumulator += elapsed;
+
+    while (tickAccumulator >= TICK_MS) {
+      if (dying) updateDeath();
+      else update();
+      tickAccumulator -= TICK_MS;
     }
+
+    ctx.clearRect(0, 0, W, H);
+    if (dying) drawDeath();
+    else draw();
     requestAnimationFrame(loop);
   }
 
@@ -2236,8 +2467,14 @@
     }
     // Add to rankings
     let rankInfo = '';
+    let onlineNotice = '';
     if (playerNickname && resultScore > 0) {
       const result = await addRanking(playerNickname, resultScore);
+      if (result.onlinePending) {
+        onlineNotice = '온라인 랭킹 저장 실패\n내 기기에 저장됨\n회복되면 자동 업로드';
+      } else if (result.syncedPending > 0) {
+        onlineNotice = `대기 기록 ${result.syncedPending}개 온라인 반영됨`;
+      }
       if (result.record.isBestForName) {
         const rankings = result.mergedRankings || result.onlineRankings || result.localRankings;
         const idx = rankings.findIndex(r => (
@@ -2247,21 +2484,22 @@
               r.score === result.record.score &&
               r.date === result.record.date
         ));
-        if (idx >= 0 && idx < 50) {
+        if (idx >= 0 && idx < 100) {
           rankInfo = `🏆 랭킹 ${idx + 1}위!`;
         }
       }
     }
+    const statusInfo = [rankInfo, onlineNotice].filter(Boolean).join('\n');
     if (isNewRecord) {
-      recordMsgEl.textContent = '★ NEW RECORD ★' + (rankInfo ? '\n' + rankInfo : '');
+      recordMsgEl.textContent = '★ NEW RECORD ★' + (statusInfo ? '\n' + statusInfo : '');
     } else {
-      recordMsgEl.textContent = rankInfo;
+      recordMsgEl.textContent = statusInfo;
     }
     recordMsgEl.className = isNewRecord ? 'new-record' : '';
-    if (rankInfo && !isNewRecord) {
-      recordMsgEl.style.color = 'var(--gold)';
-      recordMsgEl.style.fontFamily = "'VT323', monospace";
-      recordMsgEl.style.fontSize = '20px';
+    if (statusInfo && !isNewRecord) {
+      recordMsgEl.style.color = onlineNotice && !rankInfo ? '#fff1a8' : 'var(--gold)';
+      recordMsgEl.style.fontFamily = "'VT323', Arial, sans-serif";
+      recordMsgEl.style.fontSize = onlineNotice ? '18px' : '20px';
       recordMsgEl.style.letterSpacing = '0';
       recordMsgEl.style.whiteSpace = 'pre-line';
     } else if (isNewRecord) {
@@ -2292,8 +2530,7 @@
     if (e.key === 'ArrowDown' || e.key === 's') { keys.down = true; e.preventDefault(); }
     if (e.key === ' ') {
       e.preventDefault();
-      if (running) shootEgg();
-      else start();
+      if (!running) start();
     }
     if (e.key === 'Enter' && !running) start();
     if (e.key === 'm' || e.key === 'M') {
@@ -2331,8 +2568,6 @@
   }, { passive: false });
   canvas.addEventListener('touchend', e => {
     e.preventDefault();
-    const dt = Date.now() - touchStartTime;
-    if (!dragging && dt < 300 && running) shootEgg();
     touchX = null; touchY = null; dragging = false;
   }, { passive: false });
 
@@ -2345,17 +2580,18 @@
     touchY = touchStartY;
   });
   canvas.addEventListener('mousemove', e => {
-    if (touchX !== null) {
-      const x = getX(e), y = getY(e);
-      if (Math.abs(x - touchStartX) > 8 || Math.abs(y - touchStartY) > 8) dragging = true;
-      touchX = x;
-      touchY = y;
+    const x = getX(e), y = getY(e);
+    if (touchX === null) {
+      touchStartTime = Date.now();
+      touchStartX = x;
+      touchStartY = y;
     }
+    if (Math.abs(x - touchStartX) > 8 || Math.abs(y - touchStartY) > 8) dragging = true;
+    touchX = x;
+    touchY = y;
   });
   canvas.addEventListener('mouseup', e => {
-    const dt = Date.now() - touchStartTime;
-    if (!dragging && dt < 300 && running) shootEgg();
-    touchX = null; touchY = null; dragging = false;
+    dragging = false;
   });
   canvas.addEventListener('mouseleave', () => { touchX = null; touchY = null; dragging = false; });
 
@@ -2374,6 +2610,9 @@
   const playerGreeting = document.getElementById('player-greeting');
   const showRankingBtn = document.getElementById('show-ranking-btn');
   const changeNicknameBtn = document.getElementById('change-nickname-btn');
+  const itemLegend = document.querySelector('.item-legend');
+  const itemHelpBtn = document.getElementById('item-help-btn');
+  const itemHelpClose = document.getElementById('item-help-close');
   const rankingScreen = document.getElementById('ranking-screen');
   const rankingList = document.getElementById('ranking-list');
   const rankingBackBtn = document.getElementById('ranking-back-btn');
@@ -2405,7 +2644,7 @@
     for (const r of (Array.isArray(arr) ? arr : [])
       .map(r => ({
         ...r,
-        name: String(r.name || '???').slice(0, 10),
+        name: String(r.name || '???').trim().slice(0, 24) || '???',
         score: Number(r.score) || 0,
         date: Number(r.date) || 0
       }))
@@ -2434,20 +2673,61 @@
     } catch(e) {}
   }
 
+  function getPendingOnlineRankings() {
+    try {
+      const raw = localStorage.getItem('chick-quest-pending-online-rankings');
+      return raw ? normalizeRankings(JSON.parse(raw)) : [];
+    } catch(e) { return []; }
+  }
+
+  function savePendingOnlineRankings(arr) {
+    try {
+      localStorage.setItem('chick-quest-pending-online-rankings', JSON.stringify(normalizeRankings(arr)));
+    } catch(e) {}
+  }
+
+  function queuePendingOnlineRanking(record) {
+    const pending = getPendingOnlineRankings();
+    pending.push({
+      name: record.name,
+      score: Math.floor(record.score),
+      date: Number(record.date) || Date.now()
+    });
+    savePendingOnlineRankings(pending);
+  }
+
+  async function syncPendingOnlineRankings() {
+    if (!firestoreDb) return 0;
+    const pending = getPendingOnlineRankings();
+    if (pending.length === 0) return 0;
+    const remaining = [];
+    let synced = 0;
+    for (const record of pending) {
+      const result = await saveOnlineRanking(record);
+      if (result) synced++;
+      else remaining.push(record);
+    }
+    savePendingOnlineRankings(remaining);
+    return synced;
+  }
+
   function mergeRankings(...lists) {
     return normalizeRankings(lists.flatMap(list => Array.isArray(list) ? list : []));
   }
 
   async function addRanking(name, score) {
+    const syncedPending = await syncPendingOnlineRankings();
     const rankings = getRankings();
-    const record = { name: name.slice(0, 10), score: Math.floor(score), date: Date.now() };
+    const record = { name: String(name || '???').trim().slice(0, 24) || '???', score: Math.floor(score), date: Date.now() };
     const previousBest = rankings.find(r => r.name === record.name);
-    record.isBestForName = !previousBest || record.score > previousBest.score;
+    const localIsBestForName = !previousBest || record.score > previousBest.score;
+    record.isBestForName = localIsBestForName;
     rankings.push(record);
-    // Keep top 50
-    const top = normalizeRankings(rankings).slice(0, 50);
+    // Keep top 100
+    const top = normalizeRankings(rankings).slice(0, 100);
     saveRankings(top);
-    const onlineSave = await saveOnlineRanking(record);
+    const onlineSave = localIsBestForName ? await saveOnlineRanking(record) : null;
+    if (localIsBestForName && !onlineSave) queuePendingOnlineRanking(record);
     const onlineRankings = await getOnlineRankings();
     const mergedRankings = mergeRankings(onlineRankings, top);
     if (firestoreDb) {
@@ -2459,7 +2739,16 @@
     if (onlineRankings && onlineSave && onlineSave.id && onlineSave.isBestForName) {
       record._onlineId = onlineSave.id;
     }
-    return { record, localRankings: top, onlineId: onlineSave && onlineSave.id, onlineRankings, mergedRankings };
+    return {
+      record,
+      localRankings: top,
+      onlineId: onlineSave && onlineSave.id,
+      onlineRankings,
+      mergedRankings,
+      onlinePending: localIsBestForName && !onlineSave,
+      localIsBestForName,
+      syncedPending
+    };
   }
 
   async function saveOnlineRanking(record) {
@@ -2524,7 +2813,7 @@
       label.textContent = sourceLabel;
       rankingList.appendChild(label);
     }
-    rankings.slice(0, 50).forEach((r, i) => {
+    rankings.slice(0, 100).forEach((r, i) => {
       const row = document.createElement('div');
       row.className = 'ranking-row';
       if (i === 0) row.classList.add('gold');
@@ -2543,12 +2832,14 @@
 
   async function renderRankings() {
     rankingList.innerHTML = '<div class="ranking-empty">랭킹을 불러오는 중...</div>';
+    const synced = await syncPendingOnlineRankings();
     const onlineRankings = await getOnlineRankings();
     if (onlineRankings) {
-      drawRankings(mergeRankings(onlineRankings, getRankings()), '온라인 + 내 기록');
+      drawRankings(mergeRankings(onlineRankings, getRankings()), synced > 0 ? `온라인 + 내 기록 · 대기 기록 ${synced}개 반영됨` : '온라인 + 내 기록');
       return;
     }
-    drawRankings(getRankings(), '내 기기 랭킹');
+    const pending = getPendingOnlineRankings().length;
+    drawRankings(getRankings(), pending > 0 ? `내 기기 랭킹 · 온라인 대기 ${pending}개` : '내 기기 랭킹');
   }
 
   function escapeHTML(s) {
@@ -2573,6 +2864,7 @@
     nicknameScreen.classList.add('hidden');
     rankingScreen.classList.add('hidden');
     startScreen.classList.remove('hidden');
+    itemLegend.classList.remove('show');
     if (playerNickname) {
       playerGreeting.textContent = `🐤 ${playerNickname} 님, 환영합니다!`;
     } else {
@@ -2595,7 +2887,7 @@
       nicknameInput.focus();
       return;
     }
-    playerNickname = v.slice(0, 10);
+    playerNickname = v.slice(0, 24);
     const nickKey = playerNickname.toLowerCase();
     flowerTrail = ['꽃길', 'sunny', 'flower', 'blossom'].includes(nickKey);
     laborMode = ['파업', '투쟁', '초기업', '노조'].some(word => playerNickname.includes(word));
@@ -2612,6 +2904,7 @@
   showRankingBtn.addEventListener('click', () => {
     Audio.ensure();
     Audio.play('uiClick');
+    itemLegend.classList.remove('show');
     renderRankings();
     startScreen.classList.add('hidden');
     rankingScreen.classList.remove('hidden');
@@ -2626,7 +2919,19 @@
   changeNicknameBtn.addEventListener('click', () => {
     Audio.ensure();
     Audio.play('uiClick');
+    itemLegend.classList.remove('show');
     showNicknameScreen();
+  });
+
+  itemHelpBtn.addEventListener('click', () => {
+    Audio.ensure();
+    Audio.play('uiClick');
+    itemLegend.classList.toggle('show');
+  });
+
+  itemHelpClose.addEventListener('click', () => {
+    Audio.play('uiClick');
+    itemLegend.classList.remove('show');
   });
 
   rankingChangeNicknameBtn.addEventListener('click', () => {
@@ -2658,16 +2963,24 @@
   obstacles = []; corns = []; foods = []; items = []; eggs = []; particles = []; shockwaves = []; clouds = []; bonusTexts = [];
   score = 0;
   frame = 0;
-  gameSpeed = 2.2;
+  gameSpeed = 1.65;
+  chickenKillCount = 0;
+  eggBarrageFrames = 0;
   eggCooldownFrames = 0;
   for (let i = 0; i < 4; i++) {
     clouds.push({ x: Math.random() * W, y: 50 + Math.random() * (H - 200), w: 50 + Math.random() * 50, speed: 0.3 + Math.random() * 0.5 });
   }
   active = { shield: 0, magnet: 0, double: 0 };
   loadSprites(() => {
+    const previewSprites = {
+      egg: 'preview-egg-clean.png',
+      hatching: 'preview-hatching-clean.png',
+      chick: 'preview-chick-clean.png',
+      chicken: 'preview-chicken-clean.png'
+    };
     ['egg', 'hatching', 'chick', 'chicken'].forEach(name => {
       const el = document.getElementById('preview-' + name);
-      if (el) el.src = SPRITE_DATA[name];
+      if (el) el.src = previewSprites[name] || SPRITE_DATA[name];
     });
     hydrateLegendIcons();
     nicknameScreen.classList.remove('hidden');
