@@ -164,8 +164,8 @@
 
   .sound-toggle {
     position: absolute;
-    top: 86px;
-    right: 45px;
+    top: 88px;
+    right: 28px;
     transform: none;
     z-index: 11;
     background: var(--wood);
@@ -499,8 +499,8 @@
 
   @media (max-width: 430px) {
     .sound-toggle {
-      top: 86px;
-      right: 42px;
+      top: 88px;
+      right: 28px;
       width: 28px;
       height: 28px;
       font-size: 12px;
@@ -551,14 +551,14 @@
 
   #restart-btn,
   #endscreen-ranking-btn {
-    width: 290px;
-    max-width: 82vw;
-    min-height: 62px;
+    width: 210px;
+    max-width: 70vw;
+    min-height: 58px;
   }
 
   #endscreen-ranking-btn {
-    margin-top: 22px;
-    padding: 14px 32px;
+    margin-top: 20px;
+    padding: 14px 24px;
   }
 
   .help-btn {
@@ -1391,9 +1391,7 @@
   let flowerTrail = false;
   let laborMode = false;
 
-  let bestScore = 0;
-  try { const s = localStorage.getItem('chick-quest-best'); if (s) bestScore = parseInt(s) || 0; } catch(e) {}
-  best = bestScore;
+  best = 0;
   function updateBestDisplay() { bestEl.textContent = best; }
   updateBestDisplay();
 
@@ -2664,7 +2662,6 @@
     if (resultScore > best) {
       best = resultScore;
       isNewRecord = true;
-      try { localStorage.setItem('chick-quest-best', best); } catch(e) {}
       updateBestDisplay();
     }
     // Add to rankings
@@ -2672,6 +2669,7 @@
     let onlineNotice = '';
     if (playerNickname && resultScore > 0) {
       const result = await addRanking(playerNickname, resultScore);
+      updateBestForCurrentNickname();
       if (result.onlinePending) {
         onlineNotice = '온라인 랭킹 저장 실패\n내 기기에 저장됨\n회복되면 자동 업로드';
       } else if (result.syncedPending > 0) {
@@ -2872,6 +2870,30 @@
       const arr = JSON.parse(raw);
       return normalizeRankings(arr);
     } catch(e) { return []; }
+  }
+
+  function getNicknameBestScore(name) {
+    if (!name) return 0;
+    const local = getRankings().find(r => r.name === name);
+    const pending = getPendingOnlineRankings().find(r => r.name === name);
+    return Math.max(local ? local.score : 0, pending ? pending.score : 0);
+  }
+
+  function updateBestForCurrentNickname() {
+    best = getNicknameBestScore(playerNickname);
+    updateBestDisplay();
+  }
+
+  async function refreshBestForCurrentNicknameFromOnline() {
+    const name = playerNickname;
+    if (!name) return;
+    const onlineRankings = await getOnlineRankings();
+    if (!onlineRankings || name !== playerNickname) return;
+    const onlineBest = onlineRankings.find(r => r.name === name);
+    if (onlineBest && onlineBest.score > best) {
+      best = onlineBest.score;
+      updateBestDisplay();
+    }
   }
 
   function saveRankings(arr) {
@@ -3099,6 +3121,8 @@
     const nickKey = playerNickname.toLowerCase();
     flowerTrail = ['꽃길', 'sunny', 'flower', 'blossom'].includes(nickKey);
     laborMode = ['파업', '투쟁', '초기업', '노조'].some(word => playerNickname.includes(word));
+    updateBestForCurrentNickname();
+    refreshBestForCurrentNicknameFromOnline();
     Audio.ensure();
     Audio.play('uiClick');
     showStartScreen();
