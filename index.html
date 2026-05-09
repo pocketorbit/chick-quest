@@ -381,9 +381,17 @@
   .pause-title { font-family: "Press Start 2P", monospace; color: var(--gold); font-size: 22px; text-shadow: 3px 3px 0 var(--accent); margin-bottom: 18px; }
   .pause-screen .btn { width: 210px; max-width: 76vw; min-height: 54px; margin-top: 12px; font-size: 14px; }
   .tutorial-toast { bottom: 116px; width: min(360px, 86vw); padding: 12px 14px; border-radius: 8px; background: rgba(45, 25, 17, 0.88); color: #fff1a8; font-family: "Arial Black", "Malgun Gothic", "Noto Sans KR", sans-serif; font-size: 14px; font-weight: 900; line-height: 1.4; text-shadow: 1px 1px 0 rgba(0,0,0,0.55); }
+  .tutorial-modal { position: absolute; inset: 0; z-index: 34; display: flex; align-items: center; justify-content: center; padding: 20px; background: rgba(45, 25, 17, 0.54); }
+  .tutorial-card { width: min(390px, 86vw); border-radius: 8px; border: 3px solid var(--wood); background: rgba(45, 25, 17, 0.96); box-shadow: 0 10px 0 rgba(0,0,0,0.35); padding: 24px 18px 22px; text-align: center; }
+  .tutorial-title { font-family: "Press Start 2P", monospace; color: var(--gold); font-size: 18px; text-shadow: 3px 3px 0 var(--accent); margin-bottom: 16px; }
+  .tutorial-lines { display: grid; gap: 8px; color: var(--shell); font-family: "Arial Black", "Malgun Gothic", "Noto Sans KR", sans-serif; font-size: 15px; font-weight: 900; line-height: 1.35; text-shadow: 1px 1px 0 rgba(0,0,0,0.55); margin-bottom: 18px; }
+  .tutorial-line { display: flex; align-items: center; justify-content: center; gap: 7px; flex-wrap: wrap; }
+  .tutorial-icons { display: inline-flex; align-items: center; gap: 3px; font-size: 22px; line-height: 1; filter: drop-shadow(1px 1px 0 rgba(0,0,0,0.45)); }
+  .tutorial-modal .btn { width: 210px; max-width: 76vw; min-height: 54px; font-size: 14px; }
   .pause-toggle.hidden,
   .pause-screen.hidden,
-  .tutorial-toast.hidden { display: none; }
+  .tutorial-toast.hidden,
+  .tutorial-modal.hidden { display: none; }
 
   .item-legend {
     display: none;
@@ -537,7 +545,7 @@
     }
 
 
-    .pause-toggle { top: 128px; left: auto; right: 28px; width: 28px; height: 28px; font-size: 9px; border-width: 2px; box-shadow: 0 2px 0 var(--wood-dark); }
+    .pause-toggle { top: 88px; left: 28px; right: auto; width: 28px; height: 28px; font-size: 9px; border-width: 2px; box-shadow: 0 2px 0 var(--wood-dark); }
     .difficulty-select { margin-top: 10px; gap: 6px; }
     .difficulty-btn,
     .ranking-difficulty-btn,
@@ -1034,6 +1042,20 @@
     음식을 먹으면 진화하고, 적은 피하세요.<br>닭이 되면 알이 자동 발사됩니다.
   </div>
 
+  <div class="tutorial-modal hidden" id="tutorial-modal">
+    <div class="tutorial-card">
+      <div class="tutorial-title">HOW TO PLAY</div>
+      <div class="tutorial-lines">
+        <div class="tutorial-line"><span class="tutorial-icons">☀️ 🌾 🪱 🌽</span><span>먹이를 먹으면 진화!</span></div>
+        <div class="tutorial-line"><span class="tutorial-icons">🐍 🦉 🪨</span><span>적과 돌은 피하세요</span></div>
+        <div>닭이 되면 알 자동 발사</div>
+        <div>MISSION CLEAR시 생명 1회 연장</div>
+        <div>ESC 또는 P로 일시정지</div>
+      </div>
+      <button class="btn" id="tutorial-start-btn">START</button>
+    </div>
+  </div>
+
   <div class="evo-flash" id="evo-flash"><div class="text" id="evo-text"></div></div>
 </div>
 
@@ -1450,6 +1472,8 @@
   const resumeBtn = document.getElementById('resume-btn');
   const pauseRetryBtn = document.getElementById('pause-retry-btn');
   const tutorialToast = document.getElementById('tutorial-toast');
+  const tutorialModal = document.getElementById('tutorial-modal');
+  const tutorialStartBtn = document.getElementById('tutorial-start-btn');
   const difficultyButtons = [...document.querySelectorAll('.difficulty-btn')];
   const rankingDifficultyButtons = [...document.querySelectorAll('.ranking-difficulty-btn')];
   const missionBoard = document.getElementById('mission-board');
@@ -2901,14 +2925,33 @@
 
 
 
-  function showFirstPlayTutorial() {
+  function getTutorialStorageKey() {
+    return 'chick-quest-tutorial-seen-' + getMissionNameKey(playerNickname || 'guest');
+  }
+
+  function hasSeenFirstPlayTutorial() {
     let seen = false;
-    try { seen = localStorage.getItem('chick-quest-tutorial-seen') === '1'; } catch(e) {}
-    if (seen || !tutorialToast) return;
-    tutorialToast.classList.remove('hidden');
-    try { localStorage.setItem('chick-quest-tutorial-seen', '1'); } catch(e) {}
+    try { seen = localStorage.getItem(getTutorialStorageKey()) === '1'; } catch(e) {}
+    return seen;
+  }
+
+  function markFirstPlayTutorialSeen() {
+    try { localStorage.setItem(getTutorialStorageKey(), '1'); } catch(e) {}
+  }
+
+  function showFirstPlayTutorial() {
+    if (hasSeenFirstPlayTutorial() || !tutorialModal) return false;
     clearTimeout(tutorialTimer);
-    tutorialTimer = setTimeout(() => tutorialToast.classList.add('hidden'), 4200);
+    reset();
+    running = false;
+    paused = false;
+    tutorialToast?.classList.add('hidden');
+    startScreen.classList.add('hidden');
+    endScreen.classList.add('hidden');
+    pauseScreen.classList.add('hidden');
+    pauseToggle.classList.add('hidden');
+    tutorialModal.classList.remove('hidden');
+    return true;
   }
 
   function setPaused(value) {
@@ -2943,20 +2986,25 @@
     requestAnimationFrame(loop);
   }
 
-  function start() {
-    if (deathLocked) return;
-    Audio.ensure();
-    Audio.play('uiClick');
+  function beginGame() {
     reset();
     running = true;
     paused = false;
     pauseToggle.classList.remove('hidden');
     pauseScreen.classList.add('hidden');
     tutorialToast?.classList.add('hidden');
+    tutorialModal?.classList.add('hidden');
     startScreen.classList.add('hidden');
     endScreen.classList.add('hidden');
     Audio.startMusic();
-    showFirstPlayTutorial();
+  }
+
+  function start() {
+    if (deathLocked) return;
+    Audio.ensure();
+    Audio.play('uiClick');
+    if (showFirstPlayTutorial()) return;
+    beginGame();
   }
 
   function startDeathAnimation() {
@@ -3189,6 +3237,12 @@
 
   startBtn.addEventListener('click', start);
   restartBtn.addEventListener('click', start);
+  tutorialStartBtn?.addEventListener('click', () => {
+    Audio.ensure();
+    Audio.play('uiClick');
+    markFirstPlayTutorialSeen();
+    beginGame();
+  });
   pauseToggle.addEventListener('click', e => { e.stopPropagation(); Audio.play('uiClick'); setPaused(!paused); });
   resumeBtn.addEventListener('click', () => { Audio.play('uiClick'); setPaused(false); });
   pauseRetryBtn.addEventListener('click', () => { Audio.play('uiClick'); pauseScreen.classList.add('hidden'); start(); });
