@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>CHICK QUEST</title>
+<meta name="theme-color" content="#2a1810">
+<link rel="manifest" href="manifest.webmanifest">
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -636,6 +638,17 @@
     font-size: 12px;
     color: rgba(255, 248, 220, 0.58);
   }
+  .privacy-link {
+    display: inline-block;
+    margin-top: 10px;
+    color: rgba(255, 248, 220, 0.72);
+    font-family: "Arial Black", "Malgun Gothic", "Noto Sans KR", sans-serif;
+    font-size: 12px;
+    font-weight: 900;
+    text-decoration: none;
+    text-shadow: 1px 1px 0 rgba(0,0,0,0.55);
+  }
+  .privacy-link:hover { color: var(--gold); }
 
   #start-btn {
     font-size: 16px;
@@ -1005,6 +1018,7 @@
     </div>
     <div class="start-tip">드래그 혹은 키보드로 이동 가능</div>
     <div class="start-tip pause-tip">ESC 또는 P로 일시정지 가능</div>
+    <a class="privacy-link" href="privacy.html" target="_blank" rel="noopener">개인정보처리방침</a>
   </div>
 
   <div class="overlay hidden" id="ranking-screen">
@@ -1628,6 +1642,9 @@
   let titleSaveUsed = false;
   let mvpNameByDifficulty = {};
   let mvpKnownByDifficulty = {};
+  let scoreLedger = 0;
+  let scoreEvents = 0;
+  let cheatSuspected = false;
 
   best = 0;
   function updateBestDisplay() { bestEl.textContent = best; }
@@ -1651,6 +1668,35 @@
   function loadMissionProgress() { return loadMissionProgressForName(playerNickname); }
 
   function saveMissionProgress() { try { localStorage.setItem(getMissionStorageKey(), JSON.stringify(missionProgress)); } catch(e) {} }
+
+  function resetScoreAudit() {
+    scoreLedger = 0;
+    scoreEvents = 0;
+    cheatSuspected = false;
+  }
+
+  function flagScoreTamper(reason) {
+    cheatSuspected = true;
+    console.warn('Score verification warning:', reason);
+  }
+
+  function getVerifiedScore() {
+    if (score !== scoreLedger) {
+      flagScoreTamper('score mismatch');
+      score = scoreLedger;
+      scoreEl.textContent = score;
+    }
+    return scoreLedger;
+  }
+
+  function isScoreTrusted(resultScore) {
+    if (cheatSuspected) return false;
+    if (!Number.isFinite(resultScore) || resultScore < 0) return false;
+    if (resultScore !== scoreLedger) return false;
+    const activeSeconds = Math.max(1, frame / 60);
+    const maxPlausibleScore = Math.max(12000, Math.floor(activeSeconds * 700 + 9000));
+    return resultScore <= maxPlausibleScore;
+  }
 
   function isMissionMaster(progress = missionProgress) {
     return MISSIONS.every(m => (progress[m.key] || 0) >= m.target);
@@ -1757,6 +1803,7 @@
       });
     }
     score = 0;
+    resetScoreAudit();
     gameSpeed = 1.65;
     spawnTimer = 0; cornTimer = 0; foodTimer = 0; itemTimer = 0;
     frame = 0;
@@ -1843,9 +1890,12 @@
   }
 
   function addScore(points, useDouble = true) {
+    if (score !== scoreLedger) flagScoreTamper('score changed outside scorer');
     const amount = Math.max(0, Math.floor(points * (useDouble ? scoreMultiplier() : 1)));
     if (amount <= 0) return 0;
-    score += amount;
+    scoreLedger += amount;
+    scoreEvents++;
+    score = scoreLedger;
     scoreEl.textContent = score;
     return amount;
   }
@@ -3090,6 +3140,7 @@
     scoreEl.textContent = score;
     finalScoreEl.textContent = resultScore;
     let isNewRecord = false;
+    const scoreTrusted = isScoreTrusted(resultScore);
     if (resultScore > best) {
       best = resultScore;
       isNewRecord = true;
@@ -3099,9 +3150,11 @@
     let rankInfo = '';
     let onlineNotice = '';
     if (playerNickname && resultScore > 0) {
-      const result = await addRanking(playerNickname, resultScore);
+      const result = await addRanking(playerNickname, resultScore, { allowOnline: scoreTrusted });
       updateBestForCurrentNickname();
-      if (result.onlinePending) {
+      if (!scoreTrusted) {
+        onlineNotice = '기록 검증 실패\n온라인 랭킹 제외';
+      } else if (result.onlinePending) {
         onlineNotice = '온라인 랭킹 저장 실패\n내 기기에 저장됨\n회복되면 자동 업로드';
       } else if (result.syncedPending > 0) {
         onlineNotice = `대기 기록 ${result.syncedPending}개 온라인 반영됨`;
@@ -3148,7 +3201,7 @@
 
   function gameOver() {
     if (!running) return;
-    finalScoreSnapshot = score;
+    finalScoreSnapshot = getVerifiedScore();
     running = false;
     paused = false;
     pauseToggle.classList.add('hidden');
@@ -3439,8 +3492,9 @@
     }
   }
 
-  async function addRanking(name, score) {
+  async function addRanking(name, score, options = {}) {
     const syncedPending = await syncPendingOnlineRankings();
+    const allowOnline = options.allowOnline !== false;
     const rankings = getAllRankings();
     const record = { name: String(name || '???').trim().slice(0, 24) || '???', score: Math.floor(score), date: Date.now(), difficulty: normalizeDifficulty(selectedDifficulty), title: getCurrentTitle() };
     const previousBest = getRankings(record.difficulty).find(r => r.name === record.name);
@@ -3450,7 +3504,7 @@
     const top = normalizeRankings(rankings).slice(0, 300);
     saveRankings(top);
     const onlineRankings = await getOnlineRankings(record.difficulty);
-    const onlineEligible = localIsBestForName && (onlineRankings
+    const onlineEligible = allowOnline && localIsBestForName && (onlineRankings
       ? isRecordInTop100(record, onlineRankings, top)
       : isRecordInTop100(record, top));
     const onlineSave = onlineEligible && onlineRankings ? await saveOnlineRanking(record) : null;
@@ -3504,8 +3558,6 @@
       });
       if (bestDoc) {
         if (record.score > bestDoc.score) {
-          // Add a new document instead of updating the old one. Some public Firestore
-          // rules allow creates but reject updates; normalizeRankings keeps only the best.
           const doc = await firestoreDb.collection('rankings').add(onlineRecord);
           return { id: doc.id, isBestForName: true };
         }
@@ -3521,10 +3573,26 @@
 
   async function getOnlineRankings(difficulty = selectedDifficulty) {
     if (!firestoreDb) return null;
+    const normalizedDifficulty = normalizeDifficulty(difficulty);
     try {
       const snap = await firestoreDb.collection('rankings')
+        .where('difficulty', '==', normalizedDifficulty)
+        .orderBy('score', 'desc')
+        .orderBy('date', 'asc')
+        .limit(100)
         .get();
-      return normalizeRankings(snap.docs.map(doc => ({ _id: doc.id, ...doc.data() })), difficulty);
+      const onlineRows = snap.docs.map(doc => ({ _id: doc.id, ...doc.data() }));
+      if (normalizedDifficulty === 'normal') {
+        const legacySnap = await firestoreDb.collection('rankings')
+          .orderBy('score', 'desc')
+          .limit(100)
+          .get();
+        legacySnap.docs.forEach(doc => {
+          const data = doc.data() || {};
+          if (!data.difficulty) onlineRows.push({ _id: doc.id, ...data, difficulty: 'normal' });
+        });
+      }
+      return normalizeRankings(onlineRows, normalizedDifficulty);
     } catch(e) {
       console.warn('Online ranking load failed', e);
       return null;
@@ -3727,6 +3795,11 @@
 </script>
 </body>
 </html>
+
+
+
+
+
 
 
 
