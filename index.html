@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
@@ -362,8 +362,13 @@
 
   .difficulty-select,
   .ranking-difficulty-select,
-  .audio-options,
-  .mission-board { display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; }
+  .mission-board {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    align-items: stretch;
+    justify-content: center;
+    gap: 8px;
+  }
   .difficulty-select { margin: 14px 0 10px; }
   .difficulty-btn,
   .ranking-difficulty-btn,
@@ -372,10 +377,22 @@
   .ranking-difficulty-btn.selected,
   .audio-option-btn.on { background: rgba(255, 212, 71, 0.95); color: var(--wood-dark); box-shadow: 0 3px 0 var(--accent); text-shadow: none; }
   .ranking-difficulty-select { margin: -4px 0 12px; }
-  .mission-board { width: min(390px, 92vw); margin: 8px auto 12px; }
-  .mission-pill { min-width: 112px; padding: 6px 9px; border-radius: 6px; background: rgba(255, 248, 220, 0.1); color: rgba(255, 248, 220, 0.82); font-family: "Arial Black", "Malgun Gothic", "Noto Sans KR", sans-serif; font-size: 11px; font-weight: 900; line-height: 1.15; text-shadow: 1px 1px 0 rgba(0,0,0,0.45); }
+  .mission-board { width: min(calc(100vw - 72px), 320px); margin: 8px auto 12px; }
+  .mission-pill { min-width: 0; width: 100%; box-sizing: border-box; padding: 6px 9px; border-radius: 6px; background: rgba(255, 248, 220, 0.1); color: rgba(255, 248, 220, 0.82); font-family: "Arial Black", "Malgun Gothic", "Noto Sans KR", sans-serif; font-size: 11px; font-weight: 900; line-height: 1.15; text-shadow: 1px 1px 0 rgba(0,0,0,0.45); }
   .mission-pill.done { color: #ffd447; box-shadow: inset 0 0 0 2px rgba(255, 212, 71, 0.42); }
-  .audio-options { margin-top: 10px; }
+  .audio-options {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    width: min(calc(100vw - 72px), 168px);
+    margin: 10px auto 0;
+  }
+
+  .audio-options .audio-option-btn {
+    width: 100%;
+    box-sizing: border-box;
+    text-align: center;
+  }
   .pause-toggle { position: absolute; top: 88px; left: 28px; z-index: 12; width: 30px; height: 30px; border: 3px solid var(--wood-dark); border-radius: 50%; background: var(--wood); color: var(--shell); font-family: "Press Start 2P", monospace; font-size: 10px; box-shadow: 0 3px 0 var(--wood-dark); display: flex; align-items: center; justify-content: center; cursor: pointer; }
   .pause-screen,
   .tutorial-toast { position: absolute; left: 50%; transform: translateX(-50%); z-index: 30; text-align: center; }
@@ -400,18 +417,24 @@
   }
 
   .start-actions {
-    display: flex;
-    align-items: center;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 64px;
+    align-items: stretch;
     justify-content: center;
     gap: 8px;
     margin-top: 12px;
-    flex-wrap: wrap;
+    width: min(calc(100vw - 72px), 320px);
+    margin-left: auto;
+    margin-right: auto;
   }
 
   .start-actions .btn-secondary {
     margin-top: 0;
-    min-width: 112px;
-    padding: 11px 18px;
+    width: 100%;
+    min-width: 0;
+    height: 48px;
+    padding: 8px 8px;
+    box-sizing: border-box;
     font-family: "Arial Black", "Malgun Gothic", "Noto Sans KR", sans-serif;
     font-size: 16px;
     font-weight: 900;
@@ -421,6 +444,10 @@
       0 1px 0 var(--wood-dark),
       2px 2px 0 var(--wood-dark);
     letter-spacing: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
   }
 
   .rank-action-label {
@@ -438,14 +465,16 @@
 
   #show-ranking-btn,
   #endscreen-ranking-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 2px;
+    margin-top: 14px;
+    padding: 12px 16px;
+  }
+
+  #endscreen-main-btn {
+    margin-top: 14px;
   }
 
   #show-ranking-btn {
-    height: 46px;
+    height: 48px;
     padding-top: 10px;
     padding-bottom: 10px;
     overflow: visible;
@@ -553,7 +582,7 @@
     .ranking-difficulty-btn,
     .audio-option-btn { font-size: 10px; padding: 6px 8px; }
     .mission-board { gap: 6px; margin-bottom: 10px; }
-    .mission-pill { min-width: 96px; font-size: 10px; padding: 5px 7px; }
+    .mission-pill { min-width: 0; font-size: 10px; padding: 5px 6px; }
     .tutorial-toast { bottom: 92px; font-size: 12px; }
 
     .evo-show {
@@ -598,15 +627,27 @@
   }
 
   #restart-btn,
-  #endscreen-ranking-btn {
-    width: 210px;
+  #endscreen-ranking-btn,
+  #endscreen-main-btn {
+    width: 168px;
     max-width: 70vw;
-    min-height: 58px;
+    min-height: 52px;
+    padding: 12px 18px;
+    box-sizing: border-box;
   }
 
   #endscreen-ranking-btn {
-    margin-top: 20px;
-    padding: 14px 24px;
+    margin-top: 14px;
+    padding: 12px 16px;
+  }
+
+  #endscreen-main-btn {
+    margin-top: 14px;
+  }
+
+  .start-actions .help-btn {
+    width: 100% !important;
+    min-width: 0 !important;
   }
 
   .help-btn {
@@ -651,9 +692,15 @@
   .privacy-link:hover { color: var(--gold); }
 
   #start-btn {
+    display: block;
+    width: min(calc(100vw - 72px), 320px);
+    max-width: 100%;
+    box-sizing: border-box;
+    margin-left: auto;
+    margin-right: auto;
     font-size: 16px;
-    padding: 18px 48px;
-    min-width: 280px;
+    padding: 16px 28px;
+    min-width: 0;
   }
 
   .item-legend {
@@ -924,6 +971,274 @@
     75% { opacity: 1; transform: scale(1); }
     100% { opacity: 0; transform: scale(1); }
   }
+
+  /* Final button alignment fixes */
+  .start-actions #show-ranking-btn {
+    margin-top: 0;
+    height: 48px;
+    padding: 8px 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+  }
+
+  .start-actions #show-ranking-btn .trophy-icon {
+    width: 34px;
+    height: 34px;
+    margin-right: -4px;
+    transform: none;
+  }
+
+  .start-actions #show-ranking-btn .rank-action-label {
+    display: inline-flex;
+    align-items: center;
+    line-height: 1;
+    transform: none;
+  }
+
+  #endscreen-ranking-btn,
+  #endscreen-main-btn {
+    width: 168px;
+    max-width: 70vw;
+    min-height: 52px;
+    padding: 12px 16px;
+    box-sizing: border-box;
+    font-family: "Arial Black", "Malgun Gothic", "Noto Sans KR", sans-serif;
+    font-size: 16px;
+    font-weight: 900;
+    color: #ffd447;
+    text-shadow:
+      1px 0 0 var(--wood-dark),
+      0 1px 0 var(--wood-dark),
+      2px 2px 0 var(--wood-dark);
+    letter-spacing: 0;
+    text-transform: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  #endscreen-ranking-btn {
+    gap: 0;
+  }
+
+  #endscreen-ranking-btn .trophy-icon {
+    width: 32px;
+    height: 32px;
+    margin-right: -3px;
+    transform: none;
+  }
+
+  #endscreen-ranking-btn .rank-action-label {
+    display: inline-flex;
+    align-items: center;
+    line-height: 1;
+    transform: none;
+  }
+
+  #endscreen-main-btn {
+    margin-top: 14px;
+  }
+
+  /* Final visual centering fixes */
+  #restart-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+
+  #endscreen-ranking-btn,
+  .start-actions #show-ranking-btn {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+  }
+
+  #endscreen-ranking-btn .trophy-icon {
+    width: 30px;
+    height: 30px;
+    margin-right: -6px;
+    transform: translateX(-4px);
+  }
+
+  #endscreen-ranking-btn .rank-action-label {
+    display: inline-flex;
+    align-items: center;
+    line-height: 1;
+    transform: translateX(-5px);
+  }
+
+  .start-actions #show-ranking-btn .trophy-icon {
+    width: 32px;
+    height: 32px;
+    margin-right: -7px;
+    transform: translateX(-5px);
+  }
+
+  .start-actions #show-ranking-btn .rank-action-label {
+    display: inline-flex;
+    align-items: center;
+    line-height: 1;
+    transform: translateX(-6px);
+  }
+
+  #endscreen-main-btn {
+    font-family: "Arial Black", "Malgun Gothic", "Noto Sans KR", sans-serif;
+    font-size: 16px;
+    font-weight: 900;
+    color: #ffd447;
+    text-shadow:
+      1px 0 0 var(--wood-dark),
+      0 1px 0 var(--wood-dark),
+      2px 2px 0 var(--wood-dark);
+    letter-spacing: 0;
+    text-transform: none;
+  }
+
+  /* Ranking screen alignment fixes */
+  #ranking-screen .ranking-title {
+    width: min(440px, 94vw);
+    max-width: 94%;
+    margin-left: auto;
+    margin-right: auto;
+    transform: translateX(-10px);
+  }
+
+  #ranking-screen .ranking-title .trophy-icon {
+    width: 100px;
+    height: 100px;
+    transform: translateX(-4px);
+  }
+
+  #ranking-screen .ranking-title span {
+    transform: translate(-18px, -7px);
+  }
+
+  #ranking-screen .ranking-actions {
+    width: min(320px, 86vw);
+    max-width: 86vw;
+    margin: 4px auto 0;
+    display: grid;
+    grid-template-columns: 112px 192px;
+    gap: 10px;
+    justify-content: center;
+    align-items: stretch;
+  }
+
+  #ranking-screen .ranking-actions .btn {
+    width: 100%;
+    min-width: 0;
+    max-width: none;
+    box-sizing: border-box;
+    margin-top: 0;
+    padding: 12px 10px;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  #ranking-back-btn {
+    max-width: none;
+  }
+
+  /* Ranking bottom button compact width */
+  #ranking-screen .ranking-actions {
+    width: min(274px, 78vw);
+    max-width: 78vw;
+    margin: 4px auto 0;
+    display: grid;
+    grid-template-columns: 96px 168px;
+    gap: 10px;
+    justify-content: center;
+    align-items: stretch;
+  }
+
+  #ranking-screen .ranking-actions .btn {
+    width: 100%;
+    min-width: 0;
+    max-width: none;
+    box-sizing: border-box;
+    margin-top: 0;
+    padding: 12px 8px;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  #ranking-back-btn {
+    max-width: none;
+  }
+
+  /* Opening compact width and ranking screen lift */
+  #start-screen .mission-board,
+  #start-screen #start-btn,
+  #start-screen .start-actions {
+    width: min(calc(100vw - 72px), 286px);
+  }
+
+  #start-screen .mission-board {
+    gap: 6px;
+  }
+
+  #start-screen .mission-pill {
+    padding: 5px 5px;
+    font-size: 10px;
+  }
+
+  #start-screen #start-btn {
+    padding: 14px 24px;
+    min-height: 52px;
+  }
+
+  #start-screen .start-actions {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 56px;
+    gap: 7px;
+  }
+
+  #start-screen .start-actions .btn-secondary {
+    height: 46px;
+    padding: 7px 6px;
+  }
+
+  #start-screen .start-actions #show-ranking-btn .trophy-icon {
+    width: 29px;
+    height: 29px;
+    margin-right: -6px;
+  }
+
+  #start-screen .start-actions #show-ranking-btn .rank-action-label,
+  #start-screen #change-nickname-btn,
+  #start-screen #item-help-btn {
+    font-size: 15px;
+  }
+
+  #ranking-screen {
+    justify-content: flex-start;
+    padding-top: max(16px, env(safe-area-inset-top));
+  }
+
+  #ranking-screen .ranking-title {
+    margin-top: -4px;
+    margin-bottom: 8px;
+  }
+
+  #ranking-screen .ranking-difficulty-select {
+    margin-top: -2px;
+    margin-bottom: 8px;
+  }
+
+  #ranking-screen .ranking-list {
+    margin-top: 8px;
+    margin-bottom: 12px;
+  }
 </style>
 </head>
 <body>
@@ -1018,7 +1333,7 @@
     </div>
     <div class="start-tip">드래그 혹은 키보드로 이동 가능</div>
     <div class="start-tip pause-tip">ESC 또는 P로 일시정지 가능</div>
-    <a class="privacy-link" href="privacy.html" target="_blank" rel="noopener">개인정보처리방침</a>
+    <a class="privacy-link" href="privacy.html">개인정보처리방침</a>
   </div>
 
   <div class="overlay hidden" id="ranking-screen">
@@ -1044,6 +1359,7 @@
     </div>
     <button class="btn" id="restart-btn">RETRY</button>
     <button class="btn btn-secondary" id="endscreen-ranking-btn"><img class="trophy-icon" alt="" src="data:image/png;base64,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"><span class="rank-action-label">랭킹 보기</span></button>
+    <button class="btn btn-secondary" id="endscreen-main-btn">메인 화면</button>
   </div>
 
   <div class="pause-screen hidden" id="pause-screen">
@@ -1596,7 +1912,7 @@
 
   const MAX_STAGE = 3;
   const STAGE_SCORE_RATE = [1, 2, 3, 4];
-  const TOUCH_FINGER_OFFSET = 88;
+  const TOUCH_FINGER_OFFSET = 56;
   const ITEM_SCORE_BONUS = 80;
   const BARRAGE_KILL_REQUIREMENT = 10;
   const BARRAGE_DURATION = 210;
@@ -3243,11 +3559,20 @@
   let touchStartTime = 0, touchStartX = 0, touchStartY = 0, dragging = false;
   function getX(e) { const r = canvas.getBoundingClientRect(); const t = e.touches ? e.touches[0] : e; return t.clientX - r.left; }
   function getY(e) { const r = canvas.getBoundingClientRect(); const t = e.touches ? e.touches[0] : e; return t.clientY - r.top; }
+  function isTouchControlZone(x, y) {
+    const topZone = Math.max(120, H * 0.13);
+    const sideZone = Math.max(110, W * 0.18);
+    return y <= topZone && (x <= sideZone || x >= W - sideZone);
+  }
 
   canvas.addEventListener('touchstart', e => {
     e.preventDefault(); Audio.ensure();
     touchStartTime = Date.now();
     touchStartX = getX(e); touchStartY = getY(e);
+    if (isTouchControlZone(touchStartX, touchStartY)) {
+      touchX = null; touchY = null; dragging = false;
+      return;
+    }
     dragging = false;
     touchX = touchStartX;
     touchY = touchStartY - TOUCH_FINGER_OFFSET;
@@ -3255,6 +3580,10 @@
   canvas.addEventListener('touchmove', e => {
     e.preventDefault();
     const x = getX(e), rawY = getY(e);
+    if (isTouchControlZone(x, rawY)) {
+      touchX = null; touchY = null; dragging = false;
+      return;
+    }
     if (Math.abs(x - touchStartX) > 8 || Math.abs(rawY - touchStartY) > 8) dragging = true;
     touchX = x;
     touchY = rawY - TOUCH_FINGER_OFFSET;
@@ -3760,6 +4089,17 @@
       renderRankings();
       endScreen.classList.add('hidden');
       rankingScreen.classList.remove('hidden');
+    });
+  }
+
+  const endMainBtn = document.getElementById('endscreen-main-btn');
+  if (endMainBtn) {
+    endMainBtn.addEventListener('click', () => {
+      Audio.play('uiClick');
+      endScreen.classList.add('hidden');
+      rankingScreen.classList.add('hidden');
+      nicknameScreen.classList.add('hidden');
+      showStartScreen();
     });
   }
 
