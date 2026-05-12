@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
@@ -3869,6 +3869,9 @@
     appId: "1:240059963245:web:2295b62c8b20f806f0ac64",
     measurementId: "G-GQEHHVVT42"
   };
+  const RANKING_SEASON = 's2';
+  const RANKING_STORAGE_KEY = `chick-quest-rankings-${RANKING_SEASON}`;
+  const PENDING_RANKING_STORAGE_KEY = `chick-quest-pending-online-rankings-${RANKING_SEASON}`;
   let firestoreDb = null;
   try {
     if (window.firebase && window.firebase.firestore) {
@@ -3908,7 +3911,7 @@
 
   function getAllRankings() {
     try {
-      const raw = localStorage.getItem('chick-quest-rankings');
+      const raw = localStorage.getItem(RANKING_STORAGE_KEY);
       if (!raw) return [];
       const arr = JSON.parse(raw);
       return normalizeRankings(arr);
@@ -3945,20 +3948,20 @@
 
   function saveRankings(arr) {
     try {
-      localStorage.setItem('chick-quest-rankings', JSON.stringify(normalizeRankings(arr).slice(0, 300)));
+      localStorage.setItem(RANKING_STORAGE_KEY, JSON.stringify(normalizeRankings(arr).slice(0, 300)));
     } catch(e) {}
   }
 
   function getPendingOnlineRankings(difficulty = null) {
     try {
-      const raw = localStorage.getItem('chick-quest-pending-online-rankings');
+      const raw = localStorage.getItem(PENDING_RANKING_STORAGE_KEY);
       return raw ? normalizeRankings(JSON.parse(raw), difficulty) : [];
     } catch(e) { return []; }
   }
 
   function savePendingOnlineRankings(arr) {
     try {
-      localStorage.setItem('chick-quest-pending-online-rankings', JSON.stringify(normalizeRankings(arr)));
+      localStorage.setItem(PENDING_RANKING_STORAGE_KEY, JSON.stringify(normalizeRankings(arr)));
     } catch(e) {}
   }
 
@@ -3980,7 +3983,8 @@
       score: Math.floor(record.score),
       date: Number(record.date) || Date.now(),
       difficulty: normalizeDifficulty(record.difficulty),
-      title: record.title || ''
+      title: record.title || '',
+      season: RANKING_SEASON
     });
     savePendingOnlineRankings(pending);
   }
@@ -3993,8 +3997,10 @@
     let synced = 0;
     for (const record of pending) {
       const onlineRankings = await getOnlineRankings(record.difficulty);
-      if (!onlineRankings || !isRecordInTop100(record, onlineRankings, getRankings(record.difficulty))) {
-        if (!onlineRankings || isRecordInTop100(record, getRankings(record.difficulty))) remaining.push(record);
+      if (onlineRankings && !isRecordInTop100(record, onlineRankings, getRankings(record.difficulty))) {
+        continue;
+      }
+      if (!onlineRankings && !isRecordInTop100(record, getRankings(record.difficulty))) {
         continue;
       }
       const result = await saveOnlineRanking(record);
@@ -4029,7 +4035,7 @@
     const syncedPending = await syncPendingOnlineRankings();
     const allowOnline = options.allowOnline !== false;
     const rankings = getAllRankings();
-    const record = { name: String(name || '???').trim().slice(0, 24) || '???', score: Math.floor(score), date: Date.now(), difficulty: normalizeDifficulty(selectedDifficulty), title: getCurrentTitle() };
+    const record = { name: String(name || '???').trim().slice(0, 24) || '???', score: Math.floor(score), date: Date.now(), difficulty: normalizeDifficulty(selectedDifficulty), title: getCurrentTitle(), season: RANKING_SEASON };
     const previousBest = getRankings(record.difficulty).find(r => r.name === record.name);
     const localIsBestForName = !previousBest || record.score > previousBest.score;
     record.isBestForName = localIsBestForName;
@@ -4040,7 +4046,7 @@
     const onlineEligible = allowOnline && localIsBestForName && (onlineRankings
       ? isRecordInTop100(record, onlineRankings, top)
       : isRecordInTop100(record, top));
-    const onlineSave = onlineEligible && onlineRankings ? await saveOnlineRanking(record) : null;
+    const onlineSave = onlineEligible ? await saveOnlineRanking(record) : null;
     if (onlineEligible && !onlineSave) queuePendingOnlineRanking(record);
     const mergedRankings = mergeRankings(onlineRankings, top);
     rememberMvpFromRankings(mergedRankings, record.difficulty);
@@ -4073,7 +4079,8 @@
       score: record.score,
       date: record.date,
       difficulty: normalizeDifficulty(record.difficulty),
-      title: record.title || ''
+      title: record.title || '',
+      season: RANKING_SEASON
     };
     try {
       const sameName = await firestoreDb.collection('rankings')
@@ -4082,6 +4089,7 @@
       let bestDoc = null;
       sameName.forEach(doc => {
         const data = doc.data() || {};
+        if (data.season !== RANKING_SEASON) return;
         if (normalizeDifficulty(data.difficulty) !== normalizeDifficulty(record.difficulty)) return;
         const savedScore = Number(data.score) || 0;
         const savedDate = Number(data.date) || 0;
@@ -4109,22 +4117,13 @@
     const normalizedDifficulty = normalizeDifficulty(difficulty);
     try {
       const snap = await firestoreDb.collection('rankings')
+        .where('season', '==', RANKING_SEASON)
         .where('difficulty', '==', normalizedDifficulty)
         .orderBy('score', 'desc')
         .orderBy('date', 'asc')
         .limit(100)
         .get();
       const onlineRows = snap.docs.map(doc => ({ _id: doc.id, ...doc.data() }));
-      if (normalizedDifficulty === 'normal') {
-        const legacySnap = await firestoreDb.collection('rankings')
-          .orderBy('score', 'desc')
-          .limit(100)
-          .get();
-        legacySnap.docs.forEach(doc => {
-          const data = doc.data() || {};
-          if (!data.difficulty) onlineRows.push({ _id: doc.id, ...data, difficulty: 'normal' });
-        });
-      }
       return normalizeRankings(onlineRows, normalizedDifficulty);
     } catch(e) {
       console.warn('Online ranking load failed', e);
