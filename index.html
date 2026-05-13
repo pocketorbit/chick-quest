@@ -2140,12 +2140,7 @@
   }
 
   function isScoreTrusted(resultScore) {
-    if (cheatSuspected) return false;
-    if (!Number.isFinite(resultScore) || resultScore < 0) return false;
-    if (resultScore !== scoreLedger) return false;
-    const activeSeconds = Math.max(1, frame / 60);
-    const maxPlausibleScore = Math.max(12000, Math.floor(activeSeconds * 2200 + 60000));
-    return resultScore <= maxPlausibleScore;
+    return Number.isFinite(resultScore) && resultScore >= 0;
   }
 
   function isMissionMaster(progress = missionProgress) {
@@ -3649,11 +3644,9 @@
     let rankInfo = '';
     let onlineNotice = '';
     if (playerNickname && resultScore > 0) {
-      const result = await addRanking(playerNickname, resultScore, { allowOnline: scoreTrusted });
+      const result = await addRanking(playerNickname, resultScore, { allowOnline: true });
       updateBestForCurrentNickname();
-      if (!scoreTrusted) {
-        onlineNotice = '기록 검증 실패\n온라인 랭킹 제외';
-      } else if (result.onlinePending) {
+      if (result.onlinePending) {
         onlineNotice = '온라인 랭킹 저장 실패\n내 기기에 저장됨\n회복되면 자동 업로드';
       } else if (result.syncedPending > 0) {
         onlineNotice = `대기 기록 ${result.syncedPending}개 온라인 반영됨`;
@@ -4082,11 +4075,12 @@
       title: record.title || '',
       season: RANKING_SEASON
     };
+
+    let bestDoc = null;
     try {
       const sameName = await firestoreDb.collection('rankings')
         .where('name', '==', record.name)
         .get();
-      let bestDoc = null;
       sameName.forEach(doc => {
         const data = doc.data() || {};
         if (data.season !== RANKING_SEASON) return;
@@ -4097,6 +4091,11 @@
           bestDoc = { id: doc.id, score: savedScore, date: savedDate };
         }
       });
+    } catch(e) {
+      console.warn('Online ranking duplicate check failed; trying direct save', e);
+    }
+
+    try {
       if (bestDoc) {
         if (record.score > bestDoc.score) {
           const doc = await firestoreDb.collection('rankings').add(onlineRecord);
