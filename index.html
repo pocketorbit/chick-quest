@@ -2049,7 +2049,7 @@
   const BARRAGE_DURATION = 210;
   const BARRAGE_EGG_CD = 9;
   const DIFFICULTIES = {
-    easy: { label: 'EASY', speedBase: 1.35, speedScale: 0.00032, spawnMul: 1.38 },
+    easy: { label: 'EASY', speedBase: 1.32, speedScale: 0.00024, speedMax: 4.05, spawnMul: 1.42 },
     normal: { label: 'NORMAL', speedBase: 1.65, speedScale: 0.00034, speedMax: 5.25, spawnMul: 1 },
     hard: { label: 'HARD', speedBase: 2.15, speedScale: 0.00042, speedMax: 6.15, spawnMul: 0.62 }
   };
@@ -2629,8 +2629,11 @@
     spawnTimer++;
     const isBarrage = eggBarrageFrames > 0;
     const chickenPressure = player.stage === MAX_STAGE && !isBarrage;
+    const isEasy = selectedDifficulty === 'easy';
     const isNormal = selectedDifficulty === 'normal';
     const isHard = selectedDifficulty === 'hard';
+    const easyLatePressure = isEasy ? Math.min(1, Math.max(0, (score - 22000) / 80000)) : 0;
+    const easyExtremePressure = isEasy ? Math.min(1, Math.max(0, (score - 140000) / 220000)) : 0;
     const normalLatePressure = isNormal ? Math.min(1, Math.max(0, (score - 12000) / 42000)) : 0;
     const normalExtremePressure = isNormal ? Math.min(1, Math.max(0, (score - 90000) / 140000)) : 0;
     const hardLatePressure = isHard ? Math.min(1, Math.max(0, (score - 6000) / 30000)) : 0;
@@ -2638,14 +2641,16 @@
     const baseSpawnRate = isBarrage
       ? 14
       : chickenPressure
-        ? Math.max(isNormal ? 24 : isHard ? 20 : 28, 56 - score * (isNormal ? 0.0042 : isHard ? 0.0062 : 0.005))
-        : Math.max(isNormal ? 34 : isHard ? 28 : 34, 70 - score * (isNormal ? 0.0048 : isHard ? 0.0072 : 0.006));
-    const pressureMul = isNormal
-      ? (1 - normalLatePressure * 0.22 - normalExtremePressure * 0.12)
-      : isHard
-        ? (1 - hardLatePressure * 0.28 - hardExtremePressure * 0.16)
-        : 1;
-    const spawnRate = Math.max(isNormal ? 16 : isHard ? 12 : 10, baseSpawnRate * diff.spawnMul * pressureMul);
+        ? Math.max(isEasy ? 36 : isNormal ? 24 : isHard ? 20 : 28, 56 - score * (isEasy ? 0.0024 : isNormal ? 0.0042 : isHard ? 0.0062 : 0.005))
+        : Math.max(isEasy ? 46 : isNormal ? 34 : isHard ? 28 : 34, 70 - score * (isEasy ? 0.0028 : isNormal ? 0.0048 : isHard ? 0.0072 : 0.006));
+    const pressureMul = isEasy
+      ? (1 - easyLatePressure * 0.08 - easyExtremePressure * 0.04)
+      : isNormal
+        ? (1 - normalLatePressure * 0.22 - normalExtremePressure * 0.12)
+        : isHard
+          ? (1 - hardLatePressure * 0.28 - hardExtremePressure * 0.16)
+          : 1;
+    const spawnRate = Math.max(isEasy ? 26 : isNormal ? 16 : isHard ? 12 : 18, baseSpawnRate * diff.spawnMul * pressureMul);
     if (!gracePeriod && spawnTimer > spawnRate) {
       spawnTimer = 0;
       spawnObstacle(stonesOnly);
@@ -2653,17 +2658,22 @@
         if (Math.random() < 0.75) spawnObstacle(false);
         if (Math.random() < 0.25) spawnObstacle(false);
       } else if (chickenPressure) {
-        const lateClusterChance = selectedDifficulty === 'normal'
-          ? 0.36 + normalLatePressure * 0.24 + normalExtremePressure * 0.12
-          : selectedDifficulty === 'hard'
-            ? 0.48 + hardLatePressure * 0.26 + hardExtremePressure * 0.16
-            : 0.34;
+        const lateClusterChance = selectedDifficulty === 'easy'
+          ? 0.20 + easyLatePressure * 0.12 + easyExtremePressure * 0.06
+          : selectedDifficulty === 'normal'
+            ? 0.36 + normalLatePressure * 0.24 + normalExtremePressure * 0.12
+            : selectedDifficulty === 'hard'
+              ? 0.48 + hardLatePressure * 0.26 + hardExtremePressure * 0.16
+              : 0.34;
         if (Math.random() < lateClusterChance) spawnObstacle(false);
+        if (selectedDifficulty === 'easy' && score > 120000 && Math.random() < easyExtremePressure * 0.10) spawnObstacle(false);
         if (selectedDifficulty === 'normal' && score > 70000 && Math.random() < normalExtremePressure * 0.28) spawnObstacle(false);
         if (selectedDifficulty === 'hard' && score > 28000 && Math.random() < 0.12 + hardExtremePressure * 0.34) spawnObstacle(false);
       } else if (selectedDifficulty === 'normal' && score > 18000 && Math.random() < 0.12 + normalLatePressure * 0.16) {
         spawnObstacle(false);
       } else if (selectedDifficulty === 'hard' && score > 7000 && Math.random() < 0.18 + hardLatePressure * 0.18) {
+        spawnObstacle(false);
+      } else if (selectedDifficulty === 'easy' && score > 65000 && Math.random() < 0.05 + easyLatePressure * 0.06) {
         spawnObstacle(false);
       } else if (Math.random() < 0.12 && score > 1200) {
         spawnObstacle(stonesOnly);
