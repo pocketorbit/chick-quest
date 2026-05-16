@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>CHICK QUEST 개인정보처리방침</title>
+<style>
+  :root {
+    --bg: #2a1810;
+    --panel: #3a2519;
+    --gold: #ffd447;
+    --wood: #8f6334;
+    --wood-dark: #5b3a1d;
+    --shell: #fff8dc;
+    --accent: #ff7a3d;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    padding: max(18px, env(safe-area-inset-top)) 18px max(34px, env(safe-area-inset-bottom));
+    background: radial-gradient(circle at 50% 0%, rgba(255, 212, 71, 0.12), transparent 38%), var(--bg);
+    color: var(--shell);
+    font-family: "Malgun Gothic", "Noto Sans KR", system-ui, sans-serif;
+    line-height: 1.65;
+  }
+  main { max-width: 760px; margin: 0 auto; padding-bottom: 24px; }
+  .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 8px 0 14px;
+    background: linear-gradient(180deg, var(--bg) 70%, rgba(42, 24, 16, 0));
+  }
+  .back-btn {
+    border: 0;
+    border-radius: 8px;
+    background: var(--gold);
+    color: var(--wood-dark);
+    box-shadow: 0 5px 0 var(--accent), 0 8px 12px rgba(0,0,0,0.3);
+    padding: 12px 18px;
+    font-family: "Arial Black", "Malgun Gothic", sans-serif;
+    font-size: 16px;
+    font-weight: 900;
+    text-decoration: none;
+    cursor: pointer;
+  }
+  .back-btn:active { transform: translateY(3px); box-shadow: 0 2px 0 var(--accent), 0 4px 8px rgba(0,0,0,0.3); }
+  h1, h2 { color: var(--gold); line-height: 1.25; }
+  h1 { font-family: "Arial Black", "Malgun Gothic", sans-serif; font-size: 28px; margin: 8px 0 8px; }
+  h2 { font-size: 18px; margin: 28px 0 8px; }
+  p, li { font-size: 15px; }
+  .date { color: rgba(255, 248, 220, 0.72); margin-bottom: 24px; }
+  .card { background: rgba(58, 37, 25, 0.82); border: 2px solid rgba(255, 212, 71, 0.25); border-radius: 8px; padding: 18px; }
+  a { color: var(--gold); }
+</style>
+</head>
+<body>
+<main>
+  <div class="topbar">
+    <strong>CHICK QUEST</strong>
+    <button class="back-btn" type="button" onclick="goBackToGame()">게임으로 돌아가기</button>
+  </div>
+
+  <section class="card">
+    <h1>개인정보처리방침</h1>
+    <p class="date">시행일: 2026년 5월 16일</p>
+
+    <p>CHICK QUEST는 온라인 랭킹과 게임 진행 상태를 제공하기 위해 필요한 최소한의 정보만 사용합니다.</p>
+
+    <h2>1. 수집 및 저장하는 정보</h2>
+    <ul>
+      <li>온라인 랭킹: 닉네임, 점수, 난이도, 시즌, 기록 시간, 플레이어 식별자</li>
+      <li>기기 내 저장: 닉네임, 최고 기록, 미션 진행 상황, 튜토리얼 확인 여부, 사운드 설정, 업로드 대기 기록</li>
+    </ul>
+    <p>전화번호, 연락처, 정확한 위치 정보, 사진, 결제 정보는 수집하지 않습니다.</p>
+
+    <h2>2. 정보 이용 목적</h2>
+    <ul>
+      <li>온라인 랭킹 표시 및 최고 기록 관리</li>
+      <li>게임 설정, 미션 진행, 보상 상태 유지</li>
+      <li>Firebase 제한 또는 네트워크 문제 발생 시 기기 내 기록 보관 및 재시도</li>
+    </ul>
+
+    <h2>3. 사용하는 외부 서비스</h2>
+    <p>온라인 랭킹 저장과 조회를 위해 Google Firebase Cloud Firestore를 사용합니다. Google Play Games Services가 적용되면 앱 랭킹 식별을 위해 Play Games 플레이어 ID가 사용될 수 있습니다.</p>
+
+    <h2>4. 보관 및 삭제</h2>
+    <p>기기 내 기록은 사용자가 앱 데이터를 삭제하거나 앱을 제거하면 삭제될 수 있습니다. 온라인 랭킹 삭제가 필요한 경우 개발자에게 닉네임, 점수, 대략적인 기록 시간을 알려주시면 확인 후 처리합니다.</p>
+
+    <h2>5. 어린이 개인정보</h2>
+    <p>CHICK QUEST는 개인을 직접 식별할 수 있는 정보를 의도적으로 수집하지 않습니다. 닉네임에는 실명, 연락처 등 개인정보를 입력하지 않는 것을 권장합니다.</p>
+
+    <h2>6. 보안</h2>
+    <p>게임은 Firebase 보안 규칙과 HTTPS 기반 통신을 사용합니다. 다만 공개 온라인 랭킹의 특성상 완전한 보안을 보장할 수는 없습니다.</p>
+
+    <h2>7. 변경</h2>
+    <p>본 방침은 게임 기능 또는 저장 방식 변경에 따라 업데이트될 수 있습니다.</p>
+  </section>
+
+  <p style="text-align:center; margin-top:22px;">
+    <button class="back-btn" type="button" onclick="goBackToGame()">게임으로 돌아가기</button>
+  </p>
+</main>
+<script>
+  function goBackToGame() {
+    if (history.length > 1) history.back();
+    else location.href = 'index.html';
+  }
+</script>
+</body>
+</html>
